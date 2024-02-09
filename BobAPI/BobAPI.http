@@ -1,0 +1,6 @@
+@BobAPI_HostAddress = http://localhost:5278
+
+GET {{BobAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
