@@ -9,6 +9,7 @@ namespace Bob.Model.DTO
 {
 	public class UpdateUserDTO
 	{
+		[MaxLength(50)]
 		public string? FirstName { get; set; }
 		[MaxLength(50)]
 		public string? Surname { get; set; }

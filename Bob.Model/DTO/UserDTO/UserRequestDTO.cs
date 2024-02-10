@@ -29,10 +29,6 @@ namespace Bob.Model.DTO.UserDTO
 		[Required]
 		[MaxLength(50)]
 		public string Language1 { get; set; }
-		[MaxLength(50)]
-		public string? Language2 { get; set; }
-		[MaxLength(50)]
-		public DateTime CreationDate { get; set; }
-		public DateTime ModificaionDate { get; set; }
+
 	}
 }

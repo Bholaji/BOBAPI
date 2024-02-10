@@ -15,8 +15,7 @@ namespace Bob.Model.DTO
 		public string? AddressLine2 { get; set; }
 		[MaxLength(50)]
 		public string? City { get; set; }
-		[MaxLength(50)]
-		public string? PostalCode { get; set; }
+		public int? PostalCode { get; set; }
 		[MaxLength(50)]
 		public string? Country { get; set; }
 		[MaxLength(50)]

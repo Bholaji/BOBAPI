@@ -12,8 +12,7 @@ namespace Bob.Model.Entities
 		public string? AddressLine2 { get; set; }
 		[MaxLength(50)]
 		public string? City { get; set; }
-		[MaxLength(50)]
-		public string? PostalCode { get; set; }
+		public int? PostalCode { get; set; }
 		[MaxLength(50)]
 		public string? Country { get; set; }
 		[MaxLength(50)]
@@ -21,6 +20,7 @@ namespace Bob.Model.Entities
 		[MaxLength(50)]
 		public string? ModifiedBy { get; set; }
 
+		public Guid? UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]
 		public User User { get; set; }

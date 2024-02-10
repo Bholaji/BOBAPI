@@ -9,10 +9,12 @@ namespace Bob.Core
 	{
 		public ProfileConfig()
 		{
-
 			CreateMap<UserResponseDTO, User>().ReverseMap();
 			CreateMap<UserRequestDTO, User>().ReverseMap();
+			CreateMap<UpdateUserDTO, User>().ReverseMap();
 
+			CreateMap<UserAddressDTO, UserAddress>().ReverseMap();
+			CreateMap<UserContactDTO, UserContact>().ReverseMap();
 		}
 
 	}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bob.Model.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace Bob.DataAccess.Repository.IRepository
 {
-	public interface IUnitOfWork
+	public interface IAddressRepository: IRepository<UserAddress>
 	{
-		IUserRepository User {get;}
-		IAddressRepository Address { get;}
-		IUserContactRepository Contact { get; }
+		Task<UserAddress> UpdateAsync(UserAddress entity);
 	}
 }

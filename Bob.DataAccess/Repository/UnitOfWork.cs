@@ -1,17 +1,13 @@
 ﻿using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
-using Bob.Model.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bob.DataAccess.Repository
 {
 	public class UnitOfWork : IUnitOfWork
 	{
 		public IUserRepository User { get; private set; }
+		public IAddressRepository Address { get; private set; }
+		public IUserContactRepository Contact { get;private set; }
 
 		private ApplicationDbContext _db;
 
@@ -19,8 +15,9 @@ namespace Bob.DataAccess.Repository
         {
             _db = db;
             User = new UserRepository(_db);
+			Address = new AddressRepository(_db);
+			Contact = new UserContactRepository(_db);
 
 		}
-
 	}
 }
