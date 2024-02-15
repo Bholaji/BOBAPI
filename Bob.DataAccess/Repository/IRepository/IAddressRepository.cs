@@ -9,6 +9,6 @@ namespace Bob.DataAccess.Repository.IRepository
 {
 	public interface IAddressRepository: IRepository<UserAddress>
 	{
-		Task<UserAddress> UpdateAsync(UserAddress entity);
+		UserAddress UpdateAsync(UserAddress entity);
 	}
 }

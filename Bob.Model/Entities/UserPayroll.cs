@@ -9,6 +9,7 @@ namespace Bob.Model.Entities
 		public int? BaseSalary { get; set; }
 		public string? SalaryPayPeriod { get; set; }
 		public string? SalaryPayFrequency { get; set; }
+		public Guid? UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]
 		public User User { get; set; }

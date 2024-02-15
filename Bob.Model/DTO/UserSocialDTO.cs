@@ -14,5 +14,6 @@ namespace Bob.Model.DTO
 		public string? Superpowers { get; set; }
 		[MaxLength(50)]
 		public string? FoodPrefrence { get; set; }
+		public Guid? OrganizationId { get; set; }
 	}
 }

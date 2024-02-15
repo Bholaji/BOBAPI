@@ -16,11 +16,10 @@ namespace Bob.DataAccess.Repository
         {
 			_db = db;
         }
-        public async Task<UserAddress> UpdateAsync(UserAddress entity)
+        public UserAddress UpdateAsync(UserAddress entity)
 		{
 			_db.UserAddresses.Update(entity);
-			await _db.SaveChangesAsync();
 			return entity;
-		}
+		}     
 	}
 }

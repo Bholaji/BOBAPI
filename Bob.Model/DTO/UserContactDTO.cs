@@ -14,7 +14,7 @@ namespace Bob.Model.DTO
 		public int? NationalId { get; set; }
         public int? SSN { get; set; }
         public int? TaxIdNumber { get; set; }
+		public Guid? OrganizationId { get; set; }
 
-
-    }
+	}
 }

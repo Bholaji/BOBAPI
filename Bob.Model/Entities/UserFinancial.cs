@@ -16,7 +16,7 @@ namespace Bob.Model.Entities
 		public string? BankAccountType { get; set; }
 		[MaxLength(50)]
 		public string? BankAddress { get; set; }
-
+		public Guid? UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]
 		public User User { get; set; }

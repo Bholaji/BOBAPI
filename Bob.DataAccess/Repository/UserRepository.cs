@@ -13,10 +13,9 @@ namespace Bob.DataAccess.Repository
             _db = db;
         }
 
-        public async Task<User> UpdateAsync(User entity)
+        public User UpdateAsync(User entity)
         {
 			_db.Users.Update(entity);
-			await _db.SaveChangesAsync();
 			return entity;
 		}
 

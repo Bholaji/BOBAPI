@@ -10,5 +10,6 @@ namespace Bob.Model.DTO
 		public string? SalaryPayPeriod { get; set; }
 		[MaxLength(50)]
 		public string? SalaryPayFrequency { get; set; }
-    }
+		public Guid? OrganizationId { get; set; }
+	}
 }

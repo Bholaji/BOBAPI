@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Bob.Model.Entities.Home;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bob.Model.Entities
 {
@@ -26,12 +29,18 @@ namespace Bob.Model.Entities
 		[Required]
 		public string Language1 { get; set; }
 		public string? Language2 { get; set; }
-		public UserContact userContact { get; set; }
+        public UserContact userContact { get; set; }
+		[Required]
+		public Guid RoleId { get; set; }
+		[ForeignKey(nameof(RoleId))]
+		[ValidateNever]
+		public Role Role { get; set; }
 		public UserAddress UserAddress { get; set; }
 		public UserSocial UserSocial { get; set; }
 		public UserFinancial UserFinancial { get; set; }
 		public UserPayroll UserPayroll { get; set; }
 		public UserEmploymentInformation UserEmploymentInformation { get; set; }
+		public Post Post { get; set; }
 		public string SetFullName() => FullName = $"{FirstName} {Surname}";
 	}
 }

@@ -9,6 +9,6 @@ namespace Bob.DataAccess.Repository.IRepository
 {
 	public interface IUserContactRepository : IRepository<UserContact>
 	{
-		Task<UserContact> UpdateAsync (UserContact entity);
+		UserContact UpdateAsync(UserContact entity);
 	}
 }

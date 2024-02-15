@@ -14,6 +14,6 @@ namespace Bob.Model.DTO
 		public string? BankAccountType { get; set; }
 		[MaxLength(50)]
 		public string? BankAddress { get; set; }
-
+		public Guid? OrganizationId { get; set; }
 	}
 }

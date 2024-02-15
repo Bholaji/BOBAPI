@@ -19,7 +19,6 @@ namespace Bob.DataAccess.Repository
         public async Task CreateAsync(T entity)
 		{
 			await dbSet.AddAsync(entity);
-			await SaveAsync();
 		}
 
 		public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
@@ -38,6 +37,18 @@ namespace Bob.DataAccess.Repository
 				}
 			}
 			return await query.ToListAsync();
+		}
+
+		public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
+		{
+			IQueryable<T> query = dbSet;
+
+			if (filter != null)
+			{
+				query = query.Where(filter);
+			}
+
+			return await query.CountAsync();
 		}
 
 		public async Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true, string? includeProperties = null)

@@ -22,5 +22,6 @@ namespace Bob.Model.DTO
 		public string? State { get; set; }
 		[MaxLength(50)]
 		public string? ModifiedBy { get; set; }
+		public Guid? OrganizationId { get; set; }
 	}
 }

@@ -14,5 +14,6 @@ namespace Bob.DataAccess.Repository.IRepository
 		Task CreateAsync(T entity);
 		Task RemoveAsync(T entity);
 		Task SaveAsync();
+		Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
 	}
 }

@@ -6,57 +6,21 @@ using Bob.Model.DTO;
 using Bob.Model.DTO.UserDTO;
 using Bob.Model.Entities;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
 namespace Bob.Core.Services
 {
-    public class UserService: IUserService
+	public class UserService: IUserService
 	{
         private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 		private readonly ILogger<UserService> _logger;
-		public UserService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UserService> logger)
+       // public DbSet<User> _userDb { get; set; }
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UserService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
 			_logger = logger;
-        }
-
-		//USERS
-
-        public async Task<APIResponse<UserResponseDTO>> CreateUser(UserRequestDTO userDTO)
-        {
-            try
-            {
-				User user = _mapper.Map<User>(userDTO);
-				var today = DateTime.Now;
-				user.CreationDate = today;
-				user.ModificationDate = today;
-				user.SetFullName();
-
-				await _unitOfWork.User.CreateAsync(user);
-
-				return new APIResponse<UserResponseDTO>
-				{
-					IsSuccess = true,
-					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UserResponseDTO>(user)
-				};
-			}
-            catch (Exception ex)
-
-            {
-				_logger.LogError(ex.Message);
-				return new APIResponse<UserResponseDTO>
-				{
-					IsSuccess = false,
-					Message = ResponseMessage.IsError,
-					Result = default
-				};
-
-			}
-           
-        }
+		}
 
 		public async Task<APIResponse<List<UserResponseDTO>>> GetUsers()
 		{
@@ -123,43 +87,103 @@ namespace Bob.Core.Services
 			}
 		}
 
-		public async Task<APIResponse<UpdateUserDTO>> UpdateUser(Guid id, UpdateUserDTO updateUserDTO)
+		public async Task<APIResponse<UserCompositeDTO>> CreateUser(UserCompositeDTO userCompositeDTO)
 		{
 			try
 			{
 
-				User oldUser = await _unitOfWork.User.GetAsync(u => u.Id == id);
 
-				oldUser.FirstName = updateUserDTO.FirstName ?? oldUser.FirstName;
-				oldUser.Surname = updateUserDTO.Surname ?? oldUser.Surname;
-				oldUser.FullName = updateUserDTO.FullName ?? oldUser.FullName;
-				oldUser.DispalyName = updateUserDTO.DispalyName ?? oldUser.DispalyName;
-				oldUser.MiddleName = updateUserDTO.MiddleName ?? oldUser.MiddleName;
-				oldUser.Email = updateUserDTO.Email ?? oldUser.Email;
-				oldUser.Prefix = updateUserDTO.Prefix ?? oldUser.Prefix;
-				oldUser.Pronouns = updateUserDTO.Pronouns ?? oldUser.Pronouns;
-				oldUser.Nationality1 = updateUserDTO.Nationality1 ?? oldUser.Nationality1;
-				oldUser.Nationality2 = updateUserDTO.Nationality2 ?? oldUser.Nationality2;
-				oldUser.Language1 = updateUserDTO.Language1 ?? oldUser.Language1;
-				oldUser.Language2 = updateUserDTO.Language2 ?? oldUser.Language2;
+				User user = _mapper.Map<User>(userCompositeDTO.User);
+				var today = DateTime.Now;
+				user.CreationDate = today;
+				user.ModificationDate = today;
+				user.SetFullName();
+				var employeeId = await GetEmployeeId();
 
-				oldUser.DateOfBirth = updateUserDTO.DateOfBirth ?? oldUser.DateOfBirth;
+				_unitOfWork.BeginTransaction();
 
-				await _unitOfWork.User.UpdateAsync(oldUser);
+				await _unitOfWork.User.CreateAsync(user);
 
-				return new APIResponse<UpdateUserDTO>
+				UserAddress userAddress;
+				UserPayroll userpayroll;
+				UserSocial userSocial;
+				UserFinancial userFinancial;
+				UserContact userContact;
+				UserEmploymentInformation userEmploymentInformation;
+
+				
+
+				if (user.UserAddress is null)
+				{
+					userAddress = _mapper.Map<UserAddress>(userCompositeDTO.UserAddress);
+					userAddress.UserId = user.Id;
+					userAddress.OrganizationId = user.OrganizationId;
+					await _unitOfWork.Address.CreateAsync(userAddress);
+				}
+
+				if (user.UserPayroll is null)
+				{
+					 userpayroll = _mapper.Map<UserPayroll>(userCompositeDTO.UserPayroll);
+					userpayroll.UserId = user.Id;
+					userpayroll.OrganizationId = user.OrganizationId; 
+					await _unitOfWork.Payroll.CreateAsync(userpayroll);
+				}
+
+				if (user.UserSocial is null)
+                {
+					userSocial = _mapper.Map<UserSocial>(userCompositeDTO.UserSocial);
+					userSocial.UserId = user.Id;
+					userSocial.OrganizationId = user.OrganizationId;
+					await _unitOfWork.Social.CreateAsync(userSocial);
+				}
+
+				if (user.UserFinancial is null)
+				{
+					userFinancial = _mapper.Map<UserFinancial>(userCompositeDTO.UserFinancial);
+					userFinancial.UserId = user.Id;
+					userFinancial.OrganizationId = user.OrganizationId;
+					await _unitOfWork.Financial.CreateAsync(userFinancial);
+				}
+
+				if (user.userContact is null)
+				{
+					userContact = _mapper.Map<UserContact>(userCompositeDTO.UserContact);
+					userContact.UserId = user.Id;
+					userContact.OrganizationId = user.OrganizationId;
+					await _unitOfWork.Contact.CreateAsync(userContact);
+				}
+
+				if (user.UserEmploymentInformation is null)
+				{
+					userEmploymentInformation = _mapper.Map<UserEmploymentInformation>(userCompositeDTO.UserEmploymentInformation);
+					userEmploymentInformation.UserId = user.Id;
+					userEmploymentInformation.OrganizationId = user.OrganizationId;
+					userEmploymentInformation.EmployeeID = employeeId;
+					await _unitOfWork.EmploymentInformation.CreateAsync(userEmploymentInformation);
+				}
+
+				await _unitOfWork.SaveAsync();
+
+				_unitOfWork.CommitTransaction();
+
+				var resultDTO = new UserCompositeDTO
+				{
+					User = _mapper.Map<UserRequestDTO>(user)
+				};
+
+
+				return new APIResponse<UserCompositeDTO>
 				{
 					IsSuccess = true,
 					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UpdateUserDTO>(oldUser)
+					Result = resultDTO
 				};
-
 			}
 			catch (Exception ex)
 			{
-
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
-				return new APIResponse<UpdateUserDTO>
+				return new APIResponse<UserCompositeDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,
@@ -168,32 +192,58 @@ namespace Bob.Core.Services
 			}
 		}
 
-		//ADDRESS
+		private async Task<int> GetEmployeeId()
+		{
+			int employeeId = await _unitOfWork.User.CountAsync();
 
-		public async Task<APIResponse<UserAddressDTO>> CreateAddress(Guid id, UserAddressDTO userAddressDTO)
+			var users = await _unitOfWork.User.GetAllAsync();
+
+			if(employeeId != 0)
+			{
+				return employeeId + 1;
+			}
+			else
+			{
+				return 1;
+			}
+		}
+		public async Task<APIResponse<UpdateUserRequest>> UpdateUser(Guid id, UpdateUserRequest userCompositeDTO)
 		{
 			try
 			{
-				User user = await _unitOfWork.User.GetAsync(u => u.Id == id);
+				User oldUser = await _unitOfWork.User.GetAsync(x => x.Id == id);
 
-				UserAddress newUserAddress = _mapper.Map<UserAddress>(userAddressDTO);
+				oldUser.FirstName = userCompositeDTO.FirstName ?? oldUser.FirstName;
+				oldUser.Surname = userCompositeDTO.Surname ?? oldUser.Surname;
+				oldUser.FullName = userCompositeDTO.FullName ?? oldUser.FullName;
+				oldUser.DispalyName = userCompositeDTO.DispalyName ?? oldUser.DispalyName;
+				oldUser.MiddleName = userCompositeDTO.MiddleName ?? oldUser.MiddleName;
+				oldUser.Email = userCompositeDTO.Email ?? oldUser.Email;
+				oldUser.Prefix = userCompositeDTO.Prefix ?? oldUser.Prefix;
+				oldUser.Pronouns = userCompositeDTO.Pronouns ?? oldUser.Pronouns;
+				oldUser.Nationality1 = userCompositeDTO.Nationality1 ?? oldUser.Nationality1;
+				oldUser.Nationality2 = userCompositeDTO.Nationality2 ?? oldUser.Nationality2;
+				oldUser.Language1 = userCompositeDTO.Language1 ?? oldUser.Language1;
+				oldUser.Language2 = userCompositeDTO.Language2 ?? oldUser.Language2;
+				oldUser.DateOfBirth = userCompositeDTO.DateOfBirth ?? oldUser.DateOfBirth;
+				oldUser.OrganizationId = userCompositeDTO.OrganizationId ?? oldUser.OrganizationId;
+				oldUser.RoleId = userCompositeDTO.RoleId ?? oldUser.RoleId;
 
-				newUserAddress.UserId = user.Id; 
-				await _unitOfWork.Address.CreateAsync(newUserAddress);
+				_unitOfWork.User.UpdateAsync(oldUser);
+				await _unitOfWork.SaveAsync();
 
-				return new APIResponse<UserAddressDTO>
+
+				return new APIResponse<UpdateUserRequest>
 				{
 					IsSuccess = true,
 					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UserAddressDTO>(newUserAddress)
+					Result = _mapper.Map<UpdateUserRequest>(oldUser)
 				};
-
 			}
 			catch (Exception ex)
 			{
-
 				_logger.LogError(ex.Message);
-				return new APIResponse<UserAddressDTO>
+				return new APIResponse<UpdateUserRequest>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,
@@ -201,41 +251,24 @@ namespace Bob.Core.Services
 				};
 			}
 		}
-
-		public async Task<APIResponse<List<UserAddressDTO>>> GetAllAddress()
-		{
-			
-			try
-			{
-				IEnumerable<UserAddress> userAdress =  await _unitOfWork.Address.GetAllAsync();
-
-				return new APIResponse<List<UserAddressDTO>>
-				{
-					IsSuccess = true,
-					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<List<UserAddressDTO>>(userAdress)
-				};
-
-			}
-			catch (Exception ex)
-			{
-
-				_logger.LogError(ex.Message);
-				return new APIResponse<List<UserAddressDTO>>
-				{
-					IsSuccess = false,
-					Message = ResponseMessage.IsError,
-					Result = default
-				};
-			}
-		}
-
-		public async Task<APIResponse<UserAddressDTO>> GetAddress(Guid id)
+		public async Task<APIResponse<UserAddressDTO>> UpdateAddress(Guid id, UserAddressDTO userCompositeDTO)
 		{
 			try
 			{
-				UserAddress userAddress = await _unitOfWork.Address.GetAsync(u => u.Id == id);
+				var userAddress = await _unitOfWork.Address.GetAsync(u => u.Id == id);
 
+				userAddress.AddressLine1 = userCompositeDTO.AddressLine1 ?? userAddress.AddressLine1;
+				userAddress.AddressLine2 = userCompositeDTO.AddressLine2 ?? userAddress.AddressLine2;
+				userAddress.City = userCompositeDTO.City ?? userAddress.City;
+				userAddress.PostalCode = userCompositeDTO.PostalCode ?? userAddress.PostalCode;
+				userAddress.Country = userCompositeDTO.Country ?? userAddress.Country;
+				userAddress.State = userCompositeDTO.State ?? userAddress.State;
+				userAddress.ModifiedBy = userCompositeDTO.ModifiedBy ?? userAddress.ModifiedBy;
+				userAddress.OrganizationId = userCompositeDTO.OrganizationId ?? userAddress.OrganizationId;
+				_unitOfWork.Address.UpdateAsync(userAddress);
+				await _unitOfWork.SaveAsync();
+
+				
 				return new APIResponse<UserAddressDTO>
 				{
 					IsSuccess = true,
@@ -245,6 +278,8 @@ namespace Bob.Core.Services
 			}
 			catch (Exception ex)
 			{
+
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
 				return new APIResponse<UserAddressDTO>
 				{
@@ -255,34 +290,33 @@ namespace Bob.Core.Services
 			}
 		}
 
-		public async Task<APIResponse<UserAddressDTO>> UpdateAddress(Guid id, UserAddressDTO userAddressDTO)
+		public async Task<APIResponse<UserPayrollDTO>> UpdatePayroll(Guid id, UserPayrollDTO userCompositeDTO)
 		{
 			try
 			{
-				UserAddress userAddress = await _unitOfWork.Address.GetAsync(u => u.Id == id);
+				var userpayroll = await _unitOfWork.Payroll.GetAsync(u => u.Id == id);
 
-				userAddress.AddressLine1 = userAddressDTO.AddressLine1 ?? userAddress.AddressLine1;
-				userAddress.AddressLine2 = userAddressDTO.AddressLine2 ?? userAddress.AddressLine2;
-				userAddress.City = userAddressDTO.City ?? userAddress.City;
-				userAddress.PostalCode = userAddressDTO.PostalCode ?? userAddress.PostalCode;
-				userAddress.Country = userAddressDTO.Country ?? userAddress.Country;
-				userAddress.State = userAddressDTO.State ?? userAddress.State;
-				userAddress.ModifiedBy = userAddressDTO.ModifiedBy ?? userAddress.ModifiedBy;
+				userpayroll.EffectiveDate = userCompositeDTO.EffectiveDate ?? userpayroll.EffectiveDate;
+				userpayroll.BaseSalary = userCompositeDTO.BaseSalary ?? userpayroll.BaseSalary;
+				userpayroll.SalaryPayPeriod = userCompositeDTO.SalaryPayPeriod ?? userpayroll.SalaryPayPeriod;
+				userpayroll.SalaryPayFrequency = userCompositeDTO.SalaryPayFrequency ?? userpayroll.SalaryPayFrequency;
+				userpayroll.OrganizationId = userCompositeDTO.OrganizationId ?? userpayroll.OrganizationId;
+				_unitOfWork.Payroll.UpdateAsync(userpayroll);
+				await _unitOfWork.SaveAsync();
 
-				await _unitOfWork.Address.UpdateAsync(userAddress);
-
-				return new APIResponse<UserAddressDTO>
+				return new APIResponse<UserPayrollDTO>
 				{
 					IsSuccess = true,
 					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UserAddressDTO>(userAddress)
+					Result = _mapper.Map<UserPayrollDTO>(userpayroll)
 				};
 			}
 			catch (Exception ex)
 			{
 
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
-				return new APIResponse<UserAddressDTO>
+				return new APIResponse<UserPayrollDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,
@@ -291,32 +325,34 @@ namespace Bob.Core.Services
 			}
 		}
 
-		//CONTACT
-
-		public async Task<APIResponse<UserContactDTO>> CreateContact(Guid id, UserContactDTO userContactDTO)
+		public async Task<APIResponse<UserSocialDTO>> UpdateSocial(Guid id, UserSocialDTO userCompositeDTO)
 		{
 			try
 			{
-				User user = await _unitOfWork.User.GetAsync(u => u.Id == id);
+				var userSocial = await _unitOfWork.Social.GetAsync(u => u.Id == id);
 
-				UserContact newContact = _mapper.Map<UserContact>(userContactDTO);
+				userSocial.About = userCompositeDTO.About ?? userSocial.About;
+				userSocial.Socials = userCompositeDTO.Socials ?? userSocial.Socials;
+				userSocial.Hobbies = userCompositeDTO.Hobbies ?? userSocial.Hobbies;
+				userSocial.Superpowers = userCompositeDTO.Superpowers ?? userSocial.Superpowers;
+				userSocial.FoodPrefrence = userCompositeDTO.FoodPrefrence ?? userSocial.FoodPrefrence;
+				userSocial.OrganizationId = userCompositeDTO.OrganizationId ?? userSocial.OrganizationId;
+				_unitOfWork.Social.UpdateAsync(userSocial);
+				await _unitOfWork.SaveAsync();
 
-				newContact.UserId = user.Id;
-				await _unitOfWork.Contact.CreateAsync(newContact);
-
-				return new APIResponse<UserContactDTO>
+				return new APIResponse<UserSocialDTO>
 				{
 					IsSuccess = true,
 					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UserContactDTO>(newContact)
+					Result = _mapper.Map<UserSocialDTO>(userSocial)
 				};
-
 			}
 			catch (Exception ex)
 			{
 
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
-				return new APIResponse<UserContactDTO>
+				return new APIResponse<UserSocialDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,
@@ -325,26 +361,36 @@ namespace Bob.Core.Services
 			}
 		}
 
-		public async Task<APIResponse<List<UserContactDTO>>> GetAllContact()
+		public async Task<APIResponse<UserFinancialDTO>> UpdateFinancial(Guid id, UserFinancialDTO userCompositeDTO)
 		{
-
 			try
 			{
-				IEnumerable<UserContact> userContact = await _unitOfWork.Contact.GetAllAsync();
+				var userFinancial = await _unitOfWork.Financial.GetAsync(u => u.Id == id);
 
-				return new APIResponse<List<UserContactDTO>>
+				userFinancial.AccountName = userCompositeDTO.AccountName ?? userFinancial.AccountName;
+				userFinancial.RatingNumber = userCompositeDTO.RatingNumber ?? userFinancial.RatingNumber;
+				userFinancial.AccountNumber = userCompositeDTO.AccountNumber ?? userFinancial.AccountNumber;
+				userFinancial.BankName = userCompositeDTO.BankName ?? userFinancial.BankName;
+				userFinancial.BankAccountType = userCompositeDTO.BankAccountType ?? userFinancial.BankAccountType;
+				userFinancial.BankAddress = userCompositeDTO.BankAddress ?? userFinancial.BankAddress;
+				userFinancial.OrganizationId = userCompositeDTO.OrganizationId ?? userFinancial.OrganizationId;
+				_unitOfWork.Financial.UpdateAsync(userFinancial);
+				await _unitOfWork.SaveAsync();
+
+				
+				return new APIResponse<UserFinancialDTO>
 				{
 					IsSuccess = true,
 					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<List<UserContactDTO>>(userContact)
+					Result = _mapper.Map<UserFinancialDTO>(userFinancial)
 				};
-
 			}
 			catch (Exception ex)
 			{
 
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
-				return new APIResponse<List<UserContactDTO>>
+				return new APIResponse<UserFinancialDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,
@@ -353,47 +399,26 @@ namespace Bob.Core.Services
 			}
 		}
 
-		public async Task<APIResponse<UserContactDTO>> GetContact(Guid id)
+		public async Task<APIResponse<UserContactDTO>> UpdateContact(Guid id, UserContactDTO userCompositeDTO)
 		{
 			try
 			{
-				UserContact userContact = await _unitOfWork.Contact.GetAsync(u => u.Id == id);
+				var userContact = await _unitOfWork.Contact.GetAsync(u => u.Id == id);
 
-				return new APIResponse<UserContactDTO>
-				{
-					IsSuccess = true,
-					Message = ResponseMessage.IsSuccess,
-					Result = _mapper.Map<UserContactDTO>(userContact)
-				};
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex.Message);
-				return new APIResponse<UserContactDTO>
-				{
-					IsSuccess = false,
-					Message = ResponseMessage.IsError,
-					Result = default
-				};
-			}
-		}
+				userContact.PersonalEmail = userCompositeDTO.PersonalEmail ?? userContact.PersonalEmail;
+				userContact.PhoneNumber = userCompositeDTO.PhoneNumber ?? userContact.PhoneNumber;
+				userContact.MobileNumber = userCompositeDTO.MobileNumber ?? userContact.MobileNumber;
+				userContact.PassportNumber = userCompositeDTO.PassportNumber ?? userContact.PassportNumber;
+				userContact.NationalId = userCompositeDTO.NationalId ?? userContact.NationalId;
+				userContact.SSN = userCompositeDTO.SSN ?? userContact.SSN;
+				userContact.TaxIdNumber = userCompositeDTO.TaxIdNumber ?? userContact.TaxIdNumber;
+				userContact.OrganizationId = userCompositeDTO.OrganizationId ?? userContact.OrganizationId;
 
-		public async Task<APIResponse<UserContactDTO>> UpdateContact(Guid id, UserContactDTO userContactDTO)
-		{
-			try
-			{
-				UserContact userContact = await _unitOfWork.Contact.GetAsync(u => u.Id == id);
 
-				userContact.PersonalEmail = userContactDTO.PersonalEmail ?? userContact.PersonalEmail;
-				userContact.PhoneNumber = userContactDTO.PhoneNumber ?? userContact.PhoneNumber;
-				userContact.MobileNumber = userContactDTO.MobileNumber ?? userContact.MobileNumber;
-				userContact.PassportNumber = userContactDTO.PassportNumber ?? userContact.PassportNumber;
-				userContact.NationalId = userContactDTO.NationalId ?? userContact.NationalId;
-				userContact.SSN = userContactDTO.SSN ?? userContact.SSN;
-				userContact.TaxIdNumber = userContactDTO.TaxIdNumber ?? userContact.TaxIdNumber;
+				_unitOfWork.Contact.UpdateAsync(userContact);
+				await _unitOfWork.SaveAsync();
 
-				await _unitOfWork.Contact.UpdateAsync(userContact);
-
+				
 				return new APIResponse<UserContactDTO>
 				{
 					IsSuccess = true,
@@ -404,8 +429,47 @@ namespace Bob.Core.Services
 			catch (Exception ex)
 			{
 
+				_unitOfWork.RollbackTransaction();
 				_logger.LogError(ex.Message);
 				return new APIResponse<UserContactDTO>
+				{
+					IsSuccess = false,
+					Message = ResponseMessage.IsError,
+					Result = default
+				};
+			}
+		}
+		public async Task<APIResponse<UserEmploymentInformationDTO>> UpdateEmploymentInformation(Guid id, UserEmploymentInformationDTO userCompositeDTO)
+		{
+			try
+			{
+				var userEmploymentInformation = await _unitOfWork.EmploymentInformation.GetAsync(u => u.Id == id);
+
+				userEmploymentInformation.EffectiveDate = userCompositeDTO.EffectiveDate ?? userEmploymentInformation.EffectiveDate;
+				userEmploymentInformation.EmploymentDate = userCompositeDTO.EmploymentDate ?? userEmploymentInformation.EmploymentDate;
+				userEmploymentInformation.Type = userCompositeDTO.Type ?? userEmploymentInformation.Type;
+				userEmploymentInformation.WeeklyHours = userCompositeDTO.WeeklyHours ?? userEmploymentInformation.WeeklyHours;
+				userEmploymentInformation.WorkingPattern = userCompositeDTO.WorkingPattern ?? userEmploymentInformation.WorkingPattern;
+				userEmploymentInformation.OrganizationId = userCompositeDTO.OrganizationId ?? userEmploymentInformation.OrganizationId;
+				userEmploymentInformation.DepartmentId = userCompositeDTO.DepartmentId ?? userEmploymentInformation.DepartmentId;
+
+
+				_unitOfWork.EmploymentInformation.UpdateAsync(userEmploymentInformation);
+				await _unitOfWork.SaveAsync();
+
+				return new APIResponse<UserEmploymentInformationDTO>
+				{
+					IsSuccess = true,
+					Message = ResponseMessage.IsSuccess,
+					Result = _mapper.Map<UserEmploymentInformationDTO>(userEmploymentInformation)
+				};
+			}
+			catch (Exception ex)
+			{
+
+				_unitOfWork.RollbackTransaction();
+				_logger.LogError(ex.Message);
+				return new APIResponse<UserEmploymentInformationDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,

@@ -20,5 +20,9 @@ namespace Bob.Model.Entities
 		[ForeignKey("UserId")]
 		[ValidateNever]
 		public User User { get; set; }
+
+		[ForeignKey("OrganizationId")]
+		[ValidateNever]
+		public Organization organization { get; set; }
 	}
 }

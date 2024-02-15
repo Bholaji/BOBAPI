@@ -19,7 +19,6 @@ namespace Bob.Model.Entities
 		public string? State { get; set; }
 		[MaxLength(50)]
 		public string? ModifiedBy { get; set; }
-
 		public Guid? UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]

@@ -22,6 +22,94 @@ namespace Bob.Migrations.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Bob.Model.Entities.Department", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Department");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Home.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CommentBody")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Home.Post", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Posts");
+                });
+
             modelBuilder.Entity("Bob.Model.Entities.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -49,7 +137,97 @@ namespace Bob.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Domain")
+                        .IsUnique()
+                        .HasFilter("[Domain] IS NOT NULL");
+
                     b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Permissions");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.RolePermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.User", b =>
@@ -69,7 +247,7 @@ namespace Bob.Migrations.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -110,6 +288,9 @@ namespace Bob.Migrations.Migrations
                     b.Property<string>("Pronouns")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Surname")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -117,7 +298,12 @@ namespace Bob.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("OrganizationId");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -168,6 +354,8 @@ namespace Bob.Migrations.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -220,6 +408,36 @@ namespace Bob.Migrations.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MobileNumber")
+                        .IsUnique()
+                        .HasFilter("[MobileNumber] IS NOT NULL");
+
+                    b.HasIndex("NationalId")
+                        .IsUnique()
+                        .HasFilter("[NationalId] IS NOT NULL");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("PassportNumber")
+                        .IsUnique()
+                        .HasFilter("[PassportNumber] IS NOT NULL");
+
+                    b.HasIndex("PersonalEmail")
+                        .IsUnique()
+                        .HasFilter("[PersonalEmail] IS NOT NULL");
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique()
+                        .HasFilter("[PhoneNumber] IS NOT NULL");
+
+                    b.HasIndex("SSN")
+                        .IsUnique()
+                        .HasFilter("[SSN] IS NOT NULL");
+
+                    b.HasIndex("TaxIdNumber")
+                        .IsUnique()
+                        .HasFilter("[TaxIdNumber] IS NOT NULL");
+
                     b.HasIndex("UserId")
                         .IsUnique();
 
@@ -232,18 +450,29 @@ namespace Bob.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Contract")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid>("DepartmentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("EffectiveDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("EmployeeID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmploymentContract")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("EmploymentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("EmploymentType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("JobTtle")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ModificationDate")
                         .HasColumnType("datetime2");
@@ -255,7 +484,7 @@ namespace Bob.Migrations.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("WeeklyHours")
@@ -268,8 +497,16 @@ namespace Bob.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("EmployeeID")
                         .IsUnique();
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("UserEmploymentInformations");
                 });
@@ -311,13 +548,20 @@ namespace Bob.Migrations.Migrations
                     b.Property<int?>("RatingNumber")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AccountNumber")
+                        .IsUnique()
+                        .HasFilter("[AccountNumber] IS NOT NULL");
+
+                    b.HasIndex("OrganizationId");
+
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("UserFinancials");
                 });
@@ -349,13 +593,16 @@ namespace Bob.Migrations.Migrations
                     b.Property<string>("SalaryPayPeriod")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrganizationId");
+
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("UserPayrolls");
                 });
@@ -395,28 +642,143 @@ namespace Bob.Migrations.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrganizationId");
+
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("UserSocials");
                 });
 
+            modelBuilder.Entity("Bob.Model.Entities.Home.Comment", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.User", "user")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("organization");
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Home.Post", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.User", "user")
+                        .WithOne("Post")
+                        .HasForeignKey("Bob.Model.Entities.Home.Post", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("organization");
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Permission", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("organization");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Role", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("organization");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.RolePermission", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.User", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("User")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.Role", "Role")
+                        .WithMany("User")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("organization");
+                });
+
             modelBuilder.Entity("Bob.Model.Entities.UserAddress", b =>
                 {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserAddresses")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Bob.Model.Entities.User", "User")
                         .WithOne("UserAddress")
                         .HasForeignKey("Bob.Model.Entities.UserAddress", "UserId");
 
                     b.Navigation("User");
+
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.UserContact", b =>
                 {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserContacts")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Bob.Model.Entities.User", "User")
                         .WithOne("userContact")
                         .HasForeignKey("Bob.Model.Entities.UserContact", "UserId")
@@ -424,54 +786,120 @@ namespace Bob.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.UserEmploymentInformation", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.User", "User")
-                        .WithOne("UserEmploymentInformation")
-                        .HasForeignKey("Bob.Model.Entities.UserEmploymentInformation", "UserId")
+                    b.HasOne("Bob.Model.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserEmploymentInformations")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.User", "User")
+                        .WithOne("UserEmploymentInformation")
+                        .HasForeignKey("Bob.Model.Entities.UserEmploymentInformation", "UserId");
+
+                    b.Navigation("Department");
+
                     b.Navigation("User");
+
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.UserFinancial", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.User", "User")
-                        .WithOne("UserFinancial")
-                        .HasForeignKey("Bob.Model.Entities.UserFinancial", "UserId")
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserFinancials")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Bob.Model.Entities.User", "User")
+                        .WithOne("UserFinancial")
+                        .HasForeignKey("Bob.Model.Entities.UserFinancial", "UserId");
+
                     b.Navigation("User");
+
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.UserPayroll", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.User", "User")
-                        .WithOne("UserPayroll")
-                        .HasForeignKey("Bob.Model.Entities.UserPayroll", "UserId")
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserPayrolls")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Bob.Model.Entities.User", "User")
+                        .WithOne("UserPayroll")
+                        .HasForeignKey("Bob.Model.Entities.UserPayroll", "UserId");
+
                     b.Navigation("User");
+
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.UserSocial", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.User", "User")
-                        .WithOne("UserSocial")
-                        .HasForeignKey("Bob.Model.Entities.UserSocial", "UserId")
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserSocials")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Bob.Model.Entities.User", "User")
+                        .WithOne("UserSocial")
+                        .HasForeignKey("Bob.Model.Entities.UserSocial", "UserId");
+
+                    b.Navigation("User");
+
+                    b.Navigation("organization");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Organization", b =>
+                {
+                    b.Navigation("User");
+
+                    b.Navigation("UserAddresses");
+
+                    b.Navigation("UserContacts");
+
+                    b.Navigation("UserEmploymentInformations");
+
+                    b.Navigation("UserFinancials");
+
+                    b.Navigation("UserPayrolls");
+
+                    b.Navigation("UserSocials");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.User", b =>
                 {
+                    b.Navigation("Post")
+                        .IsRequired();
+
                     b.Navigation("UserAddress")
                         .IsRequired();
 

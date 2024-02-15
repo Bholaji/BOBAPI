@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Bob.Model.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Bob.Model.DTO
 {
@@ -8,11 +9,14 @@ namespace Bob.Model.DTO
 		public DateTime? EmploymentDate { get; set; }
 		[MaxLength(50)]
 		public string? Type { get; set; }
-		[MaxLength(50)]
-		public string? Contract { get; set; }
+		public string? JobTtle { get; set; }
+		public EmploymentType? EmploymentType { get; set; }
+		public EmploymentContract? EmploymentContract { get; set; }
 		[MaxLength(50)]
 		public string? WeeklyHours { get; set; }
 		[MaxLength(50)]
 		public string? WorkingPattern { get; set; }
+		public Guid? OrganizationId { get; set; }
+		public Guid? DepartmentId { get; set; }
 	}
 }
