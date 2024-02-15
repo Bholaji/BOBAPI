@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bob.Model.DTO.PostDTO;
+using Bob.Model.DTO.CommentDTO;
 
 namespace Bob.Core.Services.IServices
 {
@@ -17,5 +18,10 @@ namespace Bob.Core.Services.IServices
 		Task<APIResponse<List<GetPostDTO>>> GetPosts();
 		Task<APIResponse<GetPostDTO>> GetAPost(Guid id);
 		Task<APIResponse<PostResponseDTO>> DeleteAPost(Guid id);
+
+		Task<APIResponse<CommentResponseDTO>> CreateComment(Guid postId, CreateCommentRequestDTO DTO);
+		Task<APIResponse<CommentResponseDTO>> UpdateComment(UpdateCommentDTO DTO);
+		Task<APIResponse<List<GetCommentDTO>>> GetComment(Guid postId);
+		Task<APIResponse<CommentResponseDTO>> DeleteAComment(Guid postId,Guid id);
 	}
 }

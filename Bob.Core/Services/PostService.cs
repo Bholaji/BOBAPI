@@ -2,6 +2,7 @@
 using Bob.Core.Services.IServices;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Model;
+using Bob.Model.DTO.CommentDTO;
 using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.ShoutoutDTO;
 using Bob.Model.Entities;
@@ -165,6 +166,175 @@ namespace Bob.Core.Services
 
 				_logger.LogError(ex.Message);
 				return new APIResponse<PostResponseDTO>
+				{
+					IsSuccess = false,
+					Message = ResponseMessage.IsError,
+					Result = default
+				};
+			}
+		}
+
+		//Comment
+
+		public async Task<APIResponse<CommentResponseDTO>> CreateComment(Guid postId, CreateCommentRequestDTO DTO)
+		{
+			try
+			{
+				//User user = await _unitOfWork.User.GetAsync(u => u.Id == DTO.UserId);
+
+				Post post = await _unitOfWork.Post.GetAsync(u => u.Id == postId);
+
+				Comment comment = _mapper.Map<Comment>(DTO);
+				
+				comment.OrganizationId = post.OrganizationId;
+
+				//comment.OrganizationId = user.OrganizationId;
+
+				//comment.UserId = DTO.UserId;
+
+				await _unitOfWork.Comment.CreateAsync(comment);
+				await _unitOfWork.SaveAsync();
+
+				var response = new APIResponse<CommentResponseDTO>
+				{
+					IsSuccess = true,
+					Message = ResponseMessage.IsSuccess,
+					Result = _mapper.Map<CommentResponseDTO>(comment)
+				};
+
+				response.Result.CommentId = comment.Id;
+				return response;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex.Message);
+				return new APIResponse<CommentResponseDTO>
+				{
+					IsSuccess = false,
+					Message = ResponseMessage.IsError,
+					Result = default
+				};
+			}
+		}
+
+		public async Task<APIResponse<CommentResponseDTO>> UpdateComment(UpdateCommentDTO DTO)
+		{
+			try
+			{
+				Comment comment = await _unitOfWork.Comment.GetAsync(u => u.Id == DTO.CommentId);
+
+				comment.CommentBody = DTO.CommentBody ?? comment.CommentBody;
+
+				_unitOfWork.Comment.UpdateAsync(comment);
+
+				await _unitOfWork.SaveAsync();
+
+				var response = new APIResponse<CommentResponseDTO>
+				{
+					IsSuccess = true,
+					Message = ResponseMessage.IsSuccess,
+					Result = _mapper.Map<CommentResponseDTO>(comment)
+				};
+				response.Result.CommentId = comment.Id;
+				return response;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex.Message);
+				return new APIResponse<CommentResponseDTO>
+				{
+					IsSuccess = false,
+					Message = ResponseMessage.IsError,
+					Result = default
+				};
+
+			}
+		}
+
+
+		public async Task<APIResponse<List<GetCommentDTO>>> GetComment(Guid postId)
+		{
+			try
+			{
+				List<Comment> comment;
+
+				Post post = await _unitOfWork.Post.GetAsync(u=>u.Id == postId);
+
+				if(post != null)
+				{
+					 comment = await _unitOfWork.Comment.GetAllAsync();
+					
+				}else
+				{
+					return new APIResponse<List<GetCommentDTO>>
+					{
+						IsSuccess = false,
+						Message = "Post not found",
+						Result = default
+					};
+				}
+
+				return new APIResponse<List<GetCommentDTO>>
+					{
+						IsSuccess = true,
+						Message = ResponseMessage.IsSuccess,
+						Result = _mapper.Map<List<GetCommentDTO>>(comment)
+					};
+
+			}
+			catch (Exception ex)
+			{
+
+				_logger.LogError(ex.Message);
+				return new APIResponse<List<GetCommentDTO>>
+				{
+					IsSuccess = false,
+					Message = ResponseMessage.IsError,
+					Result = default
+				};
+			}
+		}
+
+		public async Task<APIResponse<CommentResponseDTO>> DeleteAComment(Guid postId, Guid id)
+		{
+			try
+			{
+				Post post = await _unitOfWork.Post.GetAsync(u=>u.Id == postId);
+
+				Comment comment;
+
+				if (post != null)
+				{
+					comment = await _unitOfWork.Comment.GetAsync(u => u.Id == id);
+				}
+				else
+				{
+					return new APIResponse<CommentResponseDTO>
+					{
+						IsSuccess = false,
+						Message = "Post not found",
+						Result = default
+					};
+				}
+
+				await _unitOfWork.Comment.RemoveAsync(comment);
+				await _unitOfWork.SaveAsync();
+
+				var response = new APIResponse<CommentResponseDTO>
+				{
+					IsSuccess = true,
+					Message = ResponseMessage.IsSuccess,
+					Result = _mapper.Map<CommentResponseDTO>(comment)
+				};
+				response.Result.CommentId = comment.Id;
+
+				return response;
+			}
+			catch (Exception ex)
+			{
+
+				_logger.LogError(ex.Message);
+				return new APIResponse<CommentResponseDTO>
 				{
 					IsSuccess = false,
 					Message = ResponseMessage.IsError,

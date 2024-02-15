@@ -10,9 +10,13 @@ namespace Bob.Model.DTO.CommentDTO
 {
 	public class CreateCommentRequestDTO
 	{
-		[JsonIgnore]
+		
 		public Guid UserId { get; set; }
 		[MaxLength(500)]
 		public string CommentBody { get; set; }
+		[JsonIgnore]
+		public Guid PostId { get; set; }
+		[JsonIgnore]
+		public Guid OrganizationId { get; set; }
 	}
 }

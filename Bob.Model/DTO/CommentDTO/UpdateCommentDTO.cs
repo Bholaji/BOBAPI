@@ -11,7 +11,11 @@ namespace Bob.Model.DTO.CommentDTO
 	public class UpdateCommentDTO
 	{
 		[JsonIgnore]
-		public Guid CommentId { get; set; }
+		public Guid? CommentId { get; set; }
+
+		[JsonIgnore]
+		public Guid? PostId { get; set; }
+
 		[MaxLength(500)]
 		public string? CommentBody { get; set; }
 	}

@@ -11,7 +11,6 @@ namespace Bob.Model.DTO.ShoutoutDTO
 {
 	public class CreatePostRequestDTO
 	{
-		[JsonIgnore]
         public Guid UserId { get; set; }
         [MaxLength(50)]
 		public string Title { get; set; }

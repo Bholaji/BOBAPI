@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bob.Model.Entities.Home
 {
@@ -17,5 +12,9 @@ namespace Bob.Model.Entities.Home
 		[ForeignKey(nameof(UserId))]
 		[ValidateNever]
 		public User user { get; set; }
+		public Guid PostId { get; set; }
+		[ForeignKey(nameof(PostId))]
+		[ValidateNever]
+		public Post post { get;}
 	}
 }
