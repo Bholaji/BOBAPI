@@ -30,7 +30,7 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdatePost([FromQuery] Guid commentId, [FromBody] UpdateCommentDTO DTO)
+		public async Task<IActionResult> UpdateComment([FromQuery] Guid commentId, [FromBody] UpdateCommentDTO DTO)
 		{
 			DTO.CommentId = commentId;
 			var response = await _commentService.UpdateComment(DTO);
