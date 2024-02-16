@@ -4,6 +4,7 @@ using Bob.Core.Services.IServices;
 using Bob.DataAccess.Repository;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
+using BobAPI.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -14,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
 	.WriteTo.File("log/boblogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 builder.Host.UseSerilog();
+
+builder.Services.AddTransient<GlobalExceptionHandling>();
 
 //options.UseSqlServer(connection, b => b.MigrationsAssembly("BobAPI"))
 
@@ -48,6 +51,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<GlobalExceptionHandling>();
 
 app.MapControllers();
 

@@ -24,9 +24,9 @@ namespace BobAPI.Controllers
 
 		[HttpGet("getall")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> GetAllOrganizations()
+		public async Task<IActionResult> GetAllOrganizations(int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _organizationService.GetAllOrganizations();
+			var response = await _organizationService.GetAllOrganizations(pageSize: pageSize, pageNumber: pageNumber);
 			return Ok(response);
 		}
 	}

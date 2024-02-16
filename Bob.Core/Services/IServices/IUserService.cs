@@ -8,8 +8,7 @@ namespace Bob.Core.Services.IServices
 	public interface IUserService
 	{
 		//Users
-		//Task<APIResponse<UserResponseDTO>> CreateUser(UserRequestDTO userDTO);
-		Task<APIResponse<List<UserResponseDTO>>> GetUsers();
+		Task<APIResponse<List<UserResponseDTO>>> GetUsers(int pageNumber = 1, int pageSize = 0);
 		Task<APIResponse<UserResponseDTO>> GetUser(Guid id);
 		Task<APIResponse<UserCompositeDTO>> CreateUser(UserCompositeDTO userCompositeDTO);
 		Task<APIResponse<UpdateUserRequest>> UpdateUser(Guid id, UpdateUserRequest userCompositeDTO);

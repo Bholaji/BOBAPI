@@ -43,9 +43,9 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> GetAllPost()
+		public async Task<IActionResult> GetAllPost(int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _postService.GetPosts();
+			var response = await _postService.GetPosts(pageSize: pageSize, pageNumber: pageNumber);
 			return Ok(response);
 		}
 
@@ -102,9 +102,9 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> GetComment(Guid postId)
+		public async Task<IActionResult> GetComment(Guid postId, int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _postService.GetComment(postId);
+			var response = await _postService.GetComment(postId, pageSize: pageSize, pageNumber: pageNumber);
 			return Ok(response);
 		}
 

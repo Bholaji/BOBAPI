@@ -11,6 +11,6 @@ namespace Bob.Core.Services.IServices
 	public interface IOrganizationService
 	{
 		Task<APIResponse<OrganizationDTO>> CreateOrganization(OrganizationDTO organizationDTO);
-		Task<APIResponse<List<OrganizationDTO>>> GetAllOrganizations();
+		Task<APIResponse<List<OrganizationDTO>>> GetAllOrganizations(int pageNumber = 1, int pageSize = 0);
 	}
 }

@@ -30,9 +30,9 @@ namespace BobAPI.Controllers
 
 		[HttpGet("getall")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> GetAllUsers()
+		public async Task<IActionResult> GetAllUsers(int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _userService.GetUsers();
+			var response = await _userService.GetUsers(pageSize: pageSize, pageNumber: pageNumber);
 			return Ok(response);
 		}
 
