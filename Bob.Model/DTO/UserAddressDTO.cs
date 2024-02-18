@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Bob.Model.DTO
 {
 	public class UserAddressDTO
 	{
-		[MaxLength(50)]
+		[JsonIgnore]
+        public Guid AddressId { get; set; }
+        [MaxLength(50)]
 		public string? AddressLine1 { get; set; }
 		[MaxLength(50)]
 		public string? AddressLine2 { get; set; }

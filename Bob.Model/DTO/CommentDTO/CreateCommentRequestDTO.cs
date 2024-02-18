@@ -10,7 +10,6 @@ namespace Bob.Model.DTO.CommentDTO
 {
 	public class CreateCommentRequestDTO
 	{
-		
 		public Guid UserId { get; set; }
 		[MaxLength(500)]
 		public string CommentBody { get; set; }
@@ -18,5 +17,7 @@ namespace Bob.Model.DTO.CommentDTO
 		public Guid PostId { get; set; }
 		[JsonIgnore]
 		public Guid OrganizationId { get; set; }
+		public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+		public DateTime ModificaionDate { get; set; } = DateTime.UtcNow;
 	}
 }

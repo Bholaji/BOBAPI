@@ -1,10 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Bob.Model.DTO
 {
 	public class UserSocialDTO
 	{
-		[MaxLength(50)]
+        [JsonIgnore]
+        public Guid SocialId { get; set; }
+        [MaxLength(50)]
 		public string? About { get; set; }
 		[MaxLength(50)]
 		public string? Socials { get; set; }

@@ -3,6 +3,7 @@ using Bob.Core.Services.IServices;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Model;
 using Bob.Model.DTO;
+using Bob.Model.DTO.PaginationDTO;
 using Bob.Model.DTO.ShoutoutDTO;
 using Bob.Model.DTO.UserDTO;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -32,7 +33,12 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		public async Task<IActionResult> GetAllUsers(int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _userService.GetUsers(pageSize: pageSize, pageNumber: pageNumber);
+			PaginationDTO DTO = new()
+			{
+				PageNumber = pageNumber,
+				PageSize = pageSize
+			};
+			var response = await _userService.GetUsers(DTO);
 			return Ok(response);
 		}
 
@@ -51,9 +57,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateUser([FromQuery] Guid userId, [FromBody] UpdateUserRequest userCompositeDTO)
+		public async Task<IActionResult> UpdateUser([FromQuery] Guid userId, [FromBody] UpdateUserRequest DTO)
 		{
-			var response = await _userService.UpdateUser(userId, userCompositeDTO);
+			DTO.UserId = userId;
+			var response = await _userService.UpdateUser(DTO);
 			return Ok(response);
 		}
 
@@ -62,9 +69,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateAddress([FromQuery] Guid addressId, [FromBody] UserAddressDTO userCompositeDTO)
+		public async Task<IActionResult> UpdateAddress([FromQuery] Guid addressId, [FromBody] UserAddressDTO DTO)
 		{
-			var response = await _userService.UpdateAddress(addressId, userCompositeDTO);
+			DTO.AddressId = addressId;
+			var response = await _userService.UpdateAddress(DTO);
 			return Ok(response);
 		}
 
@@ -73,9 +81,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdatePayroll([FromQuery] Guid payrollId, [FromBody] UserPayrollDTO userCompositeDTO)
+		public async Task<IActionResult> UpdatePayroll([FromQuery] Guid payrollId, [FromBody] UserPayrollDTO DTO)
 		{
-			var response = await _userService.UpdatePayroll(payrollId, userCompositeDTO);
+			DTO.PayrollId = payrollId;
+			var response = await _userService.UpdatePayroll(DTO);
 			return Ok(response);
 		}
 
@@ -84,9 +93,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateSocial([FromQuery] Guid socialId, [FromBody] UserSocialDTO userCompositeDTO)
+		public async Task<IActionResult> UpdateSocial([FromQuery] Guid socialId, [FromBody] UserSocialDTO DTO)
 		{
-			var response = await _userService.UpdateSocial(socialId, userCompositeDTO);
+			DTO.SocialId = socialId;
+			var response = await _userService.UpdateSocial(DTO);
 			return Ok(response);
 		}
 
@@ -95,9 +105,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateFinancial([FromQuery] Guid financialId, [FromBody] UserFinancialDTO userCompositeDTO)
+		public async Task<IActionResult> UpdateFinancial([FromQuery] Guid financialId, [FromBody] UserFinancialDTO DTO)
 		{
-			var response = await _userService.UpdateFinancial(financialId, userCompositeDTO);
+			DTO.FinancialId = financialId;
+			var response = await _userService.UpdateFinancial(DTO);
 			return Ok(response);
 		}
 
@@ -106,9 +117,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateContact([FromQuery] Guid contactId, [FromBody] UserContactDTO userCompositeDTO)
+		public async Task<IActionResult> UpdateContact([FromQuery] Guid contactId, [FromBody] UserContactDTO DTO)
 		{
-			var response = await _userService.UpdateContact(contactId, userCompositeDTO);
+			DTO.ContactId = contactId;
+			var response = await _userService.UpdateContact(DTO);
 			return Ok(response);
 		}
 
@@ -117,9 +129,10 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateEmploymentInformation([FromQuery] Guid employmentInformationId, [FromBody] UserEmploymentInformationDTO userCompositeDTO)
+		public async Task<IActionResult> UpdateEmploymentInformation([FromQuery] Guid employmentInformationId, [FromBody] UserEmploymentInformationDTO DTO)
 		{
-			var response = await _userService.UpdateEmploymentInformation(employmentInformationId, userCompositeDTO);
+			DTO.EmploymentInformationId = employmentInformationId;
+			var response = await _userService.UpdateEmploymentInformation(DTO);
 			return Ok(response);
 		}
 	}

@@ -5,15 +5,11 @@ using System.Text.Json;
 
 namespace BobAPI.Middleware
 {
-	public class GlobalExceptionHandling : IMiddleware
+	public class GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger) : IMiddleware
 	{
-		private readonly ILogger<GlobalExceptionHandling> _logger;
+		private readonly ILogger<GlobalExceptionHandling> _logger = logger;
 
-        public GlobalExceptionHandling(ILogger<GlobalExceptionHandling> logger)
-        {
-			_logger = logger;
-        }
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+		public async Task InvokeAsync(HttpContext context, RequestDelegate next)
 		{
 			try
 			{

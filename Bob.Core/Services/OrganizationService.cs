@@ -10,6 +10,8 @@ using AutoMapper;
 using Bob.DataAccess.Repository.IRepository;
 using Microsoft.Extensions.Logging;
 using Bob.Core.Services.IServices;
+using Bob.Core.Exceptions;
+using Bob.Model.DTO.PaginationDTO;
 
 namespace Bob.Core.Services
 {
@@ -42,9 +44,15 @@ namespace Bob.Core.Services
 			};
 		}
 
-		public async Task<APIResponse<List<OrganizationDTO>>> GetAllOrganizations(int pageNumber = 1, int pageSize = 0)
+		public async Task<APIResponse<List<OrganizationDTO>>> GetAllOrganizations(PaginationDTO DTO)
 		{
-			IEnumerable<Organization> organizations = await _unitOfWork.OrganizationRepository.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
+			IEnumerable<Organization> organizations = await _unitOfWork.OrganizationRepository
+				.GetAllAsync(pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
+
+			if(organizations is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
 
 			return new APIResponse<List<OrganizationDTO>>
 			{

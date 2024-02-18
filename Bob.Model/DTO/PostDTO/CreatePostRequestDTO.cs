@@ -17,5 +17,7 @@ namespace Bob.Model.DTO.ShoutoutDTO
 		[MaxLength(500)]
 		public string Content { get; set; }
 		public string ImageUrl { get; set; }
+		public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+		public DateTime ModificaionDate { get; set; } = DateTime.UtcNow;
 	}
 }

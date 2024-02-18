@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Bob.Core.Exceptions;
 using Bob.Core.Services.IServices;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Model;
 using Bob.Model.DTO;
+using Bob.Model.DTO.PaginationDTO;
 using Bob.Model.DTO.UserDTO;
 using Bob.Model.Entities;
 using Microsoft.Extensions.Logging;
@@ -22,9 +24,14 @@ namespace Bob.Core.Services
 			_logger = logger;
 		}
 
-		public async Task<APIResponse<List<UserResponseDTO>>> GetUsers(int pageNumber = 1, int pageSize = 0)
+		public async Task<APIResponse<List<UserResponseDTO>>> GetUsers(PaginationDTO DTO)
 		{
-			IEnumerable<User> users = await _unitOfWork.User.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
+			IEnumerable<User> users = await _unitOfWork.User.GetAllAsync(pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
+
+			if(users is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
 
 			return new APIResponse<List<UserResponseDTO>>
 			{
@@ -34,20 +41,14 @@ namespace Bob.Core.Services
 			};
 		}
 
-		public async Task<APIResponse<UserResponseDTO>> GetUser(Guid id)
+		public async Task<APIResponse<UserResponseDTO>> GetUser(Guid userId)
 		{
-			var user = await _unitOfWork.User.GetAsync(u => u.Id == id);
+			var user = await _unitOfWork.User.GetAsync(u => u.Id == userId);
 
-			if (user == null)
+			if (user is null)
 			{
-				return new APIResponse<UserResponseDTO>
-				{
-					IsSuccess = false,
-					Message = ResponseMessage.IsError,
-					Result = default
-				};
+				throw new NotFoundException(ResponseMessage.NotFound);
 			}
-
 
 			return new APIResponse<UserResponseDTO>
 			{
@@ -57,15 +58,35 @@ namespace Bob.Core.Services
 
 			};
 		}
+		private async Task<int> GetEmployeeId(Guid organizationId)
+		{
+			int employeeId = await _unitOfWork.User.CountAsync(u=>u.OrganizationId == organizationId);
 
+			var users = await _unitOfWork.User.GetAllAsync();
+
+			if (employeeId is not 0)
+			{
+				return employeeId + 1;
+			}
+			else
+			{
+				return 1;
+			}
+		}
 		public async Task<APIResponse<UserCompositeDTO>> CreateUser(UserCompositeDTO userCompositeDTO)
 		{
 			User user = _mapper.Map<User>(userCompositeDTO.User);
+
+			if (user is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
 			var today = DateTime.Now;
 			user.CreationDate = today;
 			user.ModificationDate = today;
 			user.SetFullName();
-			var employeeId = await GetEmployeeId();
+
+			var employeeId = await GetEmployeeId(user.OrganizationId);
 
 			_unitOfWork.BeginTransaction();
 
@@ -77,8 +98,6 @@ namespace Bob.Core.Services
 			UserFinancial userFinancial;
 			UserContact userContact;
 			UserEmploymentInformation userEmploymentInformation;
-
-
 
 			if (user.UserAddress is null)
 			{
@@ -147,40 +166,30 @@ namespace Bob.Core.Services
 			};
 		}
 
-		private async Task<int> GetEmployeeId()
+		public async Task<APIResponse<UpdateUserRequest>> UpdateUser( UpdateUserRequest DTO)
 		{
-			int employeeId = await _unitOfWork.User.CountAsync();
+			User oldUser = await _unitOfWork.User.GetAsync(x => x.Id == DTO.UserId);
 
-			var users = await _unitOfWork.User.GetAllAsync();
-
-			if (employeeId != 0)
+			if (oldUser is null)
 			{
-				return employeeId + 1;
+				throw new NotFoundException(ResponseMessage.NotFound);
 			}
-			else
-			{
-				return 1;
-			}
-		}
-		public async Task<APIResponse<UpdateUserRequest>> UpdateUser(Guid id, UpdateUserRequest userCompositeDTO)
-		{
-			User oldUser = await _unitOfWork.User.GetAsync(x => x.Id == id);
 
-			oldUser.FirstName = userCompositeDTO.FirstName ?? oldUser.FirstName;
-			oldUser.Surname = userCompositeDTO.Surname ?? oldUser.Surname;
-			oldUser.FullName = userCompositeDTO.FullName ?? oldUser.FullName;
-			oldUser.DispalyName = userCompositeDTO.DispalyName ?? oldUser.DispalyName;
-			oldUser.MiddleName = userCompositeDTO.MiddleName ?? oldUser.MiddleName;
-			oldUser.Email = userCompositeDTO.Email ?? oldUser.Email;
-			oldUser.Prefix = userCompositeDTO.Prefix ?? oldUser.Prefix;
-			oldUser.Pronouns = userCompositeDTO.Pronouns ?? oldUser.Pronouns;
-			oldUser.Nationality1 = userCompositeDTO.Nationality1 ?? oldUser.Nationality1;
-			oldUser.Nationality2 = userCompositeDTO.Nationality2 ?? oldUser.Nationality2;
-			oldUser.Language1 = userCompositeDTO.Language1 ?? oldUser.Language1;
-			oldUser.Language2 = userCompositeDTO.Language2 ?? oldUser.Language2;
-			oldUser.DateOfBirth = userCompositeDTO.DateOfBirth ?? oldUser.DateOfBirth;
-			oldUser.OrganizationId = userCompositeDTO.OrganizationId ?? oldUser.OrganizationId;
-			oldUser.RoleId = userCompositeDTO.RoleId ?? oldUser.RoleId;
+			oldUser.FirstName = DTO.FirstName ?? oldUser.FirstName;
+			oldUser.Surname = DTO.Surname ?? oldUser.Surname;
+			oldUser.FullName = DTO.FullName ?? oldUser.FullName;
+			oldUser.DispalyName = DTO.DispalyName ?? oldUser.DispalyName;
+			oldUser.MiddleName = DTO.MiddleName ?? oldUser.MiddleName;
+			oldUser.Email = DTO.Email ?? oldUser.Email;
+			oldUser.Prefix = DTO.Prefix ?? oldUser.Prefix;
+			oldUser.Pronouns = DTO.Pronouns ?? oldUser.Pronouns;
+			oldUser.Nationality1 = DTO.Nationality1 ?? oldUser.Nationality1;
+			oldUser.Nationality2 = DTO.Nationality2 ?? oldUser.Nationality2;
+			oldUser.Language1 = DTO.Language1 ?? oldUser.Language1;
+			oldUser.Language2 = DTO.Language2 ?? oldUser.Language2;
+			oldUser.DateOfBirth = DTO.DateOfBirth ?? oldUser.DateOfBirth;
+			oldUser.OrganizationId = DTO.OrganizationId ?? oldUser.OrganizationId;
+			oldUser.RoleId = DTO.RoleId ?? oldUser.RoleId;
 
 			_unitOfWork.User.UpdateAsync(oldUser);
 			await _unitOfWork.SaveAsync();
@@ -193,18 +202,22 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UpdateUserRequest>(oldUser)
 			};
 		}
-		public async Task<APIResponse<UserAddressDTO>> UpdateAddress(Guid id, UserAddressDTO userCompositeDTO)
+		public async Task<APIResponse<UserAddressDTO>> UpdateAddress(UserAddressDTO DTO)
 		{
-			var userAddress = await _unitOfWork.Address.GetAsync(u => u.Id == id);
+			var userAddress = await _unitOfWork.Address.GetAsync(u => u.Id == DTO.AddressId);
 
-			userAddress.AddressLine1 = userCompositeDTO.AddressLine1 ?? userAddress.AddressLine1;
-			userAddress.AddressLine2 = userCompositeDTO.AddressLine2 ?? userAddress.AddressLine2;
-			userAddress.City = userCompositeDTO.City ?? userAddress.City;
-			userAddress.PostalCode = userCompositeDTO.PostalCode ?? userAddress.PostalCode;
-			userAddress.Country = userCompositeDTO.Country ?? userAddress.Country;
-			userAddress.State = userCompositeDTO.State ?? userAddress.State;
-			userAddress.ModifiedBy = userCompositeDTO.ModifiedBy ?? userAddress.ModifiedBy;
-			userAddress.OrganizationId = userCompositeDTO.OrganizationId ?? userAddress.OrganizationId;
+			if (userAddress is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userAddress.AddressLine1 = DTO.AddressLine1 ?? userAddress.AddressLine1;
+			userAddress.AddressLine2 = DTO.AddressLine2 ?? userAddress.AddressLine2;
+			userAddress.City = DTO.City ?? userAddress.City;
+			userAddress.PostalCode = DTO.PostalCode ?? userAddress.PostalCode;
+			userAddress.Country = DTO.Country ?? userAddress.Country;
+			userAddress.State = DTO.State ?? userAddress.State;
+			userAddress.ModifiedBy = DTO.ModifiedBy ?? userAddress.ModifiedBy;
+			userAddress.OrganizationId = DTO.OrganizationId ?? userAddress.OrganizationId;
 			_unitOfWork.Address.UpdateAsync(userAddress);
 			await _unitOfWork.SaveAsync();
 
@@ -216,16 +229,19 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UserAddressDTO>(userAddress)
 			};
 		}
-
-		public async Task<APIResponse<UserPayrollDTO>> UpdatePayroll(Guid id, UserPayrollDTO userCompositeDTO)
+		public async Task<APIResponse<UserPayrollDTO>> UpdatePayroll(UserPayrollDTO DTO)
 		{
-			var userpayroll = await _unitOfWork.Payroll.GetAsync(u => u.Id == id);
+			var userpayroll = await _unitOfWork.Payroll.GetAsync(u => u.Id == DTO.PayrollId);
 
-			userpayroll.EffectiveDate = userCompositeDTO.EffectiveDate ?? userpayroll.EffectiveDate;
-			userpayroll.BaseSalary = userCompositeDTO.BaseSalary ?? userpayroll.BaseSalary;
-			userpayroll.SalaryPayPeriod = userCompositeDTO.SalaryPayPeriod ?? userpayroll.SalaryPayPeriod;
-			userpayroll.SalaryPayFrequency = userCompositeDTO.SalaryPayFrequency ?? userpayroll.SalaryPayFrequency;
-			userpayroll.OrganizationId = userCompositeDTO.OrganizationId ?? userpayroll.OrganizationId;
+			if (userpayroll is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userpayroll.EffectiveDate = DTO.EffectiveDate ?? userpayroll.EffectiveDate;
+			userpayroll.BaseSalary = DTO.BaseSalary ?? userpayroll.BaseSalary;
+			userpayroll.SalaryPayPeriod = DTO.SalaryPayPeriod ?? userpayroll.SalaryPayPeriod;
+			userpayroll.SalaryPayFrequency = DTO.SalaryPayFrequency ?? userpayroll.SalaryPayFrequency;
+			userpayroll.OrganizationId = DTO.OrganizationId ?? userpayroll.OrganizationId;
 			_unitOfWork.Payroll.UpdateAsync(userpayroll);
 			await _unitOfWork.SaveAsync();
 
@@ -236,16 +252,20 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UserPayrollDTO>(userpayroll)
 			};
 		}
-		public async Task<APIResponse<UserSocialDTO>> UpdateSocial(Guid id, UserSocialDTO userCompositeDTO)
+		public async Task<APIResponse<UserSocialDTO>> UpdateSocial(UserSocialDTO DTO)
 		{
-			var userSocial = await _unitOfWork.Social.GetAsync(u => u.Id == id);
+			var userSocial = await _unitOfWork.Social.GetAsync(u => u.Id == DTO.SocialId);
 
-			userSocial.About = userCompositeDTO.About ?? userSocial.About;
-			userSocial.Socials = userCompositeDTO.Socials ?? userSocial.Socials;
-			userSocial.Hobbies = userCompositeDTO.Hobbies ?? userSocial.Hobbies;
-			userSocial.Superpowers = userCompositeDTO.Superpowers ?? userSocial.Superpowers;
-			userSocial.FoodPrefrence = userCompositeDTO.FoodPrefrence ?? userSocial.FoodPrefrence;
-			userSocial.OrganizationId = userCompositeDTO.OrganizationId ?? userSocial.OrganizationId;
+			if (userSocial is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userSocial.About = DTO.About ?? userSocial.About;
+			userSocial.Socials = DTO.Socials ?? userSocial.Socials;
+			userSocial.Hobbies = DTO.Hobbies ?? userSocial.Hobbies;
+			userSocial.Superpowers = DTO.Superpowers ?? userSocial.Superpowers;
+			userSocial.FoodPrefrence = DTO.FoodPrefrence ?? userSocial.FoodPrefrence;
+			userSocial.OrganizationId = DTO.OrganizationId ?? userSocial.OrganizationId;
 			_unitOfWork.Social.UpdateAsync(userSocial);
 			await _unitOfWork.SaveAsync();
 
@@ -256,17 +276,21 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UserSocialDTO>(userSocial)
 			};
 		}
-		public async Task<APIResponse<UserFinancialDTO>> UpdateFinancial(Guid id, UserFinancialDTO userCompositeDTO)
+		public async Task<APIResponse<UserFinancialDTO>> UpdateFinancial(UserFinancialDTO DTO)
 		{
-			var userFinancial = await _unitOfWork.Financial.GetAsync(u => u.Id == id);
+			var userFinancial = await _unitOfWork.Financial.GetAsync(u => u.Id == DTO.FinancialId);
 
-			userFinancial.AccountName = userCompositeDTO.AccountName ?? userFinancial.AccountName;
-			userFinancial.RatingNumber = userCompositeDTO.RatingNumber ?? userFinancial.RatingNumber;
-			userFinancial.AccountNumber = userCompositeDTO.AccountNumber ?? userFinancial.AccountNumber;
-			userFinancial.BankName = userCompositeDTO.BankName ?? userFinancial.BankName;
-			userFinancial.BankAccountType = userCompositeDTO.BankAccountType ?? userFinancial.BankAccountType;
-			userFinancial.BankAddress = userCompositeDTO.BankAddress ?? userFinancial.BankAddress;
-			userFinancial.OrganizationId = userCompositeDTO.OrganizationId ?? userFinancial.OrganizationId;
+			if (userFinancial is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userFinancial.AccountName = DTO.AccountName ?? userFinancial.AccountName;
+			userFinancial.RatingNumber = DTO.RatingNumber ?? userFinancial.RatingNumber;
+			userFinancial.AccountNumber = DTO.AccountNumber ?? userFinancial.AccountNumber;
+			userFinancial.BankName = DTO.BankName ?? userFinancial.BankName;
+			userFinancial.BankAccountType = DTO.BankAccountType ?? userFinancial.BankAccountType;
+			userFinancial.BankAddress = DTO.BankAddress ?? userFinancial.BankAddress;
+			userFinancial.OrganizationId = DTO.OrganizationId ?? userFinancial.OrganizationId;
 			_unitOfWork.Financial.UpdateAsync(userFinancial);
 			await _unitOfWork.SaveAsync();
 
@@ -278,18 +302,22 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UserFinancialDTO>(userFinancial)
 			};
 		}
-		public async Task<APIResponse<UserContactDTO>> UpdateContact(Guid id, UserContactDTO userCompositeDTO)
+		public async Task<APIResponse<UserContactDTO>> UpdateContact(UserContactDTO DTO)
 		{
-			var userContact = await _unitOfWork.Contact.GetAsync(u => u.Id == id);
+			var userContact = await _unitOfWork.Contact.GetAsync(u => u.Id == DTO.ContactId);
 
-			userContact.PersonalEmail = userCompositeDTO.PersonalEmail ?? userContact.PersonalEmail;
-			userContact.PhoneNumber = userCompositeDTO.PhoneNumber ?? userContact.PhoneNumber;
-			userContact.MobileNumber = userCompositeDTO.MobileNumber ?? userContact.MobileNumber;
-			userContact.PassportNumber = userCompositeDTO.PassportNumber ?? userContact.PassportNumber;
-			userContact.NationalId = userCompositeDTO.NationalId ?? userContact.NationalId;
-			userContact.SSN = userCompositeDTO.SSN ?? userContact.SSN;
-			userContact.TaxIdNumber = userCompositeDTO.TaxIdNumber ?? userContact.TaxIdNumber;
-			userContact.OrganizationId = userCompositeDTO.OrganizationId ?? userContact.OrganizationId;
+			if (userContact is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userContact.PersonalEmail = DTO.PersonalEmail ?? userContact.PersonalEmail;
+			userContact.PhoneNumber = DTO.PhoneNumber ?? userContact.PhoneNumber;
+			userContact.MobileNumber = DTO.MobileNumber ?? userContact.MobileNumber;
+			userContact.PassportNumber = DTO.PassportNumber ?? userContact.PassportNumber;
+			userContact.NationalId = DTO.NationalId ?? userContact.NationalId;
+			userContact.SSN = DTO.SSN ?? userContact.SSN;
+			userContact.TaxIdNumber = DTO.TaxIdNumber ?? userContact.TaxIdNumber;
+			userContact.OrganizationId = DTO.OrganizationId ?? userContact.OrganizationId;
 
 
 			_unitOfWork.Contact.UpdateAsync(userContact);
@@ -303,17 +331,20 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<UserContactDTO>(userContact)
 			};
 		}
-		public async Task<APIResponse<UserEmploymentInformationDTO>> UpdateEmploymentInformation(Guid id, UserEmploymentInformationDTO userCompositeDTO)
+		public async Task<APIResponse<UserEmploymentInformationDTO>> UpdateEmploymentInformation(UserEmploymentInformationDTO DTO)
 		{
-			var userEmploymentInformation = await _unitOfWork.EmploymentInformation.GetAsync(u => u.Id == id);
-
-			userEmploymentInformation.EffectiveDate = userCompositeDTO.EffectiveDate ?? userEmploymentInformation.EffectiveDate;
-			userEmploymentInformation.EmploymentDate = userCompositeDTO.EmploymentDate ?? userEmploymentInformation.EmploymentDate;
-			userEmploymentInformation.Type = userCompositeDTO.Type ?? userEmploymentInformation.Type;
-			userEmploymentInformation.WeeklyHours = userCompositeDTO.WeeklyHours ?? userEmploymentInformation.WeeklyHours;
-			userEmploymentInformation.WorkingPattern = userCompositeDTO.WorkingPattern ?? userEmploymentInformation.WorkingPattern;
-			userEmploymentInformation.OrganizationId = userCompositeDTO.OrganizationId ?? userEmploymentInformation.OrganizationId;
-			userEmploymentInformation.DepartmentId = userCompositeDTO.DepartmentId ?? userEmploymentInformation.DepartmentId;
+			var userEmploymentInformation = await _unitOfWork.EmploymentInformation.GetAsync(u => u.Id == DTO.EmploymentInformationId);
+			if (userEmploymentInformation is null)
+			{
+				throw new NotFoundException(ResponseMessage.NotFound);
+			}
+			userEmploymentInformation.EffectiveDate = DTO.EffectiveDate ?? userEmploymentInformation.EffectiveDate;
+			userEmploymentInformation.EmploymentDate = DTO.EmploymentDate ?? userEmploymentInformation.EmploymentDate;
+			userEmploymentInformation.Type = DTO.Type ?? userEmploymentInformation.Type;
+			userEmploymentInformation.WeeklyHours = DTO.WeeklyHours ?? userEmploymentInformation.WeeklyHours;
+			userEmploymentInformation.WorkingPattern = DTO.WorkingPattern ?? userEmploymentInformation.WorkingPattern;
+			userEmploymentInformation.OrganizationId = DTO.OrganizationId ?? userEmploymentInformation.OrganizationId;
+			userEmploymentInformation.DepartmentId = DTO.DepartmentId ?? userEmploymentInformation.DepartmentId;
 
 
 			_unitOfWork.EmploymentInformation.UpdateAsync(userEmploymentInformation);

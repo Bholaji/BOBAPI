@@ -30,15 +30,23 @@ namespace Bob.DataAccess.Repository
 			{
 				query = query.Where(filter);
 			}
-			if(pageSize > 0)
-			{
-				if(pageSize > 100)
-				{
-					pageSize = 100;
-				}
 
-				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+			if(pageSize > 100)
+			{
+				pageSize = 100;
 			}
+			if(pageSize < 0)
+			{
+				pageSize = 10;
+			}
+			if(pageNumber < 1)
+			{
+				pageNumber = 1;
+			}
+			query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+
+			//pagesize < 1 should default to 10
+			//pagenuber < 1 should default to 1
 			if (includeProperties != null)
 			{
 				foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))

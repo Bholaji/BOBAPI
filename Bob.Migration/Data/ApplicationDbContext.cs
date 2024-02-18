@@ -36,6 +36,12 @@ namespace Bob.Migrations.Data
 					.HasForeignKey(u => u.OrganizationId)
 					.OnDelete(DeleteBehavior.Restrict);
 
+			//Composite index of employee id and organizationid
+			modelBuilder.Entity<UserEmploymentInformation>()
+				.HasIndex(u => new { u.OrganizationId, u.EmployeeID })
+				.IsUnique();
+
+
 			modelBuilder.Entity<User>()
 				.HasIndex(x => x.Email).IsUnique();
 

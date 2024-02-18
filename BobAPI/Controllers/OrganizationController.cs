@@ -1,6 +1,7 @@
 ﻿using Bob.Core.Services.IServices;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Model.DTO;
+using Bob.Model.DTO.PaginationDTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BobAPI.Controllers
@@ -26,7 +27,12 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		public async Task<IActionResult> GetAllOrganizations(int pageNumber = 1, int pageSize = 0)
 		{
-			var response = await _organizationService.GetAllOrganizations(pageSize: pageSize, pageNumber: pageNumber);
+			PaginationDTO DTO = new()
+			{
+				PageNumber = pageNumber,
+				PageSize = pageSize
+			};
+			var response = await _organizationService.GetAllOrganizations(DTO);
 			return Ok(response);
 		}
 	}

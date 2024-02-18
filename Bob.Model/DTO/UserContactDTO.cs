@@ -1,9 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Bob.Model.DTO
 {
 	public class UserContactDTO
     {
+		[JsonIgnore]
+		public Guid ContactId { get; set; }
 		[MaxLength(50)]
 		public string? PersonalEmail { get; set; }
 		[MaxLength(50)]

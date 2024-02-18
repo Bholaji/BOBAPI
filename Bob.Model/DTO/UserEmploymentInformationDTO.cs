@@ -1,10 +1,13 @@
 ﻿using Bob.Model.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Bob.Model.DTO
 {
 	public class UserEmploymentInformationDTO
 	{
+		[JsonIgnore]
+		public Guid EmploymentInformationId { get; set; }
 		public DateTime? EffectiveDate { get; set; }
 		public DateTime? EmploymentDate { get; set; }
 		[MaxLength(50)]
