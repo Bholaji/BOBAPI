@@ -210,6 +210,11 @@ namespace Bob.Core.Services
 			}
 			var comment = await _unitOfWork.Comment.GetAllAsync(pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
 
+			if(comment.Count == 0)
+			{
+				throw new NotFoundException("No Comment available");
+			}
+
 			return new APIResponse<List<GetCommentDTO>>
 			{
 				IsSuccess = true,

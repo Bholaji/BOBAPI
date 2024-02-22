@@ -16,7 +16,7 @@ Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
 	.WriteTo.File("log/boblogs.txt", rollingInterval: RollingInterval.Day).CreateLogger();
 builder.Host.UseSerilog();
 
-builder.Services.AddTransient<GlobalExceptionHandling>();
+builder.Services.AddTransient<ExceptionMiddlewareExtension>();
 
 //options.UseSqlServer(connection, b => b.MigrationsAssembly("BobAPI"))
 
@@ -52,7 +52,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.UseMiddleware<GlobalExceptionHandling>();
+//app.UseMiddleware<ExceptionMiddlewareExtension>();
 
 app.MapControllers();
 

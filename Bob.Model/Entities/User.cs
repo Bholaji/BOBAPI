@@ -40,7 +40,7 @@ namespace Bob.Model.Entities
 		public UserFinancial UserFinancial { get; set; }
 		public UserPayroll UserPayroll { get; set; }
 		public UserEmploymentInformation UserEmploymentInformation { get; set; }
-		public Post Post { get; set; }
+		public List<Post> Post { get; set; }
 		public string SetFullName() => FullName = $"{FirstName} {Surname}";
 	}
 }

@@ -7,9 +7,15 @@ using ApplicationException = Bob.Core.Exceptions.ApplicationException;
 
 namespace BobAPI.Middleware
 {
-	public static class ExceptionMiddlewareExtension
+	public class ExceptionMiddlewareExtension
 	{
-		public static void ConfigureExceptionHandler(this IApplicationBuilder app)
+		private readonly ILogger<ExceptionMiddlewareExtension> _logger;
+
+		public ExceptionMiddlewareExtension(ILogger<ExceptionMiddlewareExtension> logger)
+		{
+			_logger = logger;
+		}
+		public void ConfigureExceptionHandler(IApplicationBuilder app)
 		{
 			app.UseExceptionHandler(error =>
 			{
@@ -24,6 +30,7 @@ namespace BobAPI.Middleware
                     {
                         if (contextFeature.Error is ApplicationException exception)
                         {
+							_logger.LogError(contextFeature.Error.Message);
 							context.Response.StatusCode = (int)exception.StatusCode;
 							await context.Response.WriteAsync(JsonConvert.SerializeObject( new APIResponse<string>
 							{
@@ -33,6 +40,7 @@ namespace BobAPI.Middleware
                         }
                         else
                         {
+							_logger.LogError(contextFeature.Error.Message);	
 							context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 							await context.Response.WriteAsync(JsonConvert.SerializeObject(new APIResponse<string>
 							{
