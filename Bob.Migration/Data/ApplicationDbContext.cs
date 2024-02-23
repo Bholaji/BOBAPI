@@ -46,7 +46,7 @@ namespace Bob.Migrations.Data
 				.HasIndex(x => x.Email).IsUnique();
 
 			modelBuilder.Entity<UserEmploymentInformation>()
-				.HasIndex(x => x.EmployeeID).IsUnique();
+				.HasIndex(x => x.EmployeeID);
 
 			modelBuilder.Entity<Organization>()
 				.HasIndex(x => x.Domain).IsUnique();

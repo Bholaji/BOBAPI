@@ -47,9 +47,6 @@ namespace Bob.DataAccess.Repository
 				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
 			}
 
-
-			//pagesize < 1 should default to 10
-			//pagenuber < 1 should default to 1
 			if (includeProperties != null)
 			{
 				foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))

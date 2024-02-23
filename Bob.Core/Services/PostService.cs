@@ -208,7 +208,7 @@ namespace Bob.Core.Services
 				throw new NotFoundException(ResponseMessage.NotFound);
 
 			}
-			var comment = await _unitOfWork.Comment.GetAllAsync(pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
+			var comment = await _unitOfWork.Comment.GetAllAsync(u=>u.PostId == DTO.PostId,  pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
 
 			if(comment.Count == 0)
 			{
