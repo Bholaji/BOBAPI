@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.DTO.PaginationDTO
 {
-    public class PaginationDTO
-    {
-        public int PageNumber { get; set; } = 1;
-		public int PageSize { get; set; } = 0;
-    }
+	public class TaskPaginationDTO: PaginationDTO
+	{
+		[JsonIgnore]
+		public Guid UserId { get; set; }
+		[JsonIgnore]
+		public Guid TaskId { get; set; }
+	}
 }

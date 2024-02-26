@@ -25,6 +25,8 @@ namespace Bob.Migrations.Data
 		public DbSet<Role> Roles { get; set; }
 		public DbSet<Post> Posts { get; set; }
 		public DbSet<Comment> Comments { get; set; }
+		public DbSet<UserTask> Tasks { get; set; }
+		public DbSet<ActivityLog> ActivityLogs { get; set; }
 
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -88,5 +90,37 @@ namespace Bob.Migrations.Data
 				.OnDelete(DeleteBehavior.Restrict);
 		}
 
+		public async Task SaveTaskChanges(UserTask task)
+		{
+			 await SaveTaskAndLogActivities(task);
+
+			await base.SaveChangesAsync();
+		}
+
+		private async Task SaveTaskAndLogActivities(UserTask task)
+		{
+			var logActivity = new ActivityLogUtility(this);
+			var modifiedEntries = ChangeTracker.Entries<UserTask>()
+								.Where(e => e.State == EntityState.Modified || e.State == EntityState.Added)
+								.ToList();
+
+
+			foreach (var entry in modifiedEntries)
+			{
+				var originalValues = entry.OriginalValues;
+				var currentValues = entry.CurrentValues;
+
+				if(entry.State == EntityState.Added) {
+
+					await logActivity.LogActivity(task, true);
+				}
+
+				if (entry.State != EntityState.Added && originalValues[nameof(UserTask.TaskStatus)] != currentValues[nameof(UserTask.TaskStatus)])
+				{
+					await logActivity.LogActivity(task, false);
+
+				}
+			}
+		}
 	}
 }

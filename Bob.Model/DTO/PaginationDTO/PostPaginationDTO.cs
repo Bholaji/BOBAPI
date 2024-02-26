@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.DTO.PaginationDTO
 {
-	public class PostPaginationDTO: PaginationDTO
+	public class CommentPaginationDTO: PaginationDTO
 	{
 		[JsonIgnore]
         public Guid PostId { get; set; }

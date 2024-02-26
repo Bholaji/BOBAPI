@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Bob.Core.Services.IServices;
 using Bob.Core.Exceptions;
 using Bob.Model.DTO.PaginationDTO;
+using Bob.Model.Entities.Home;
 
 namespace Bob.Core.Services
 {
@@ -51,7 +52,7 @@ namespace Bob.Core.Services
 
 			if(organizations is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Organization)} {ResponseMessage.NotFound}");
 			}
 
 			return new APIResponse<List<OrganizationDTO>>

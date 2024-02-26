@@ -3,6 +3,7 @@ using Bob.Model.DTO;
 using Bob.Model.DTO.CommentDTO;
 using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.ShoutoutDTO;
+using Bob.Model.DTO.TaskDTO;
 using Bob.Model.DTO.UserDTO;
 using Bob.Model.Entities;
 using Bob.Model.Entities.Home;
@@ -45,6 +46,11 @@ namespace Bob.Core
 			CreateMap<GetCommentDTO, Comment>().ReverseMap();
 
 			CreateMap<UpdateUserRequest, User>().ReverseMap();
+
+			CreateMap<TaskRequestDTO, UserTask>().ReverseMap();
+			CreateMap<ToogleStatusDTO, UserTask>().ReverseMap();
+			CreateMap<GetUserTaskDTO, UserTask>().ReverseMap();
+			CreateMap<UpdateTaskDTO, UserTask>().ReverseMap();
 
 
 		}

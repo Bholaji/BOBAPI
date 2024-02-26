@@ -16,6 +16,7 @@ namespace Bob.DataAccess.Repository
 		public IOrganizationRepository OrganizationRepository { get; private set; }
 		public IPostRepository Post { get; private set; }
 		public ICommentRepository Comment { get; private set; }
+		public ITaskRepository UserTask { get; private set; }
 
 		private ApplicationDbContext _db;
 
@@ -32,9 +33,9 @@ namespace Bob.DataAccess.Repository
 			OrganizationRepository = new OrganizationRepository(_db);
 			Post = new PostRepository(_db);
 			Comment = new CommentRepository(_db);
+			UserTask = new TaskRepository(_db);
 		}
 
-		
 		public void BeginTransaction()
 		{
 			_db.Database.BeginTransaction();

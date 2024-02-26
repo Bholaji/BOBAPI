@@ -31,105 +31,100 @@ namespace BobAPI.Controllers
 
 		[HttpGet("getall")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> GetAllUsers(int pageNumber = 1, int pageSize = 0)
+		public async Task<IActionResult> GetAllUsers([FromQuery]PaginationDTO DTO)
 		{
-			PaginationDTO DTO = new()
-			{
-				PageNumber = pageNumber,
-				PageSize = pageSize
-			};
 			var response = await _userService.GetUsers(DTO);
 			return Ok(response);
 		}
 
-		[HttpGet("get")]
+		[HttpGet("get/{userId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> GetAUser([FromQuery]Guid userId)
+		public async Task<IActionResult> GetAUser(Guid userId)
 		{
 			var response = await _userService.GetUser(userId);
 			return Ok(response);
 		}
 
-		[HttpPost("updateuser")]
+		[HttpPost("{userId}/updateuser")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateUser([FromQuery] Guid userId, [FromBody] UpdateUserRequest DTO)
+		public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserRequest DTO)
 		{
 			DTO.UserId = userId;
 			var response = await _userService.UpdateUser(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updateaddress")]
+		[HttpPost("updateaddress/{addressId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateAddress([FromQuery] Guid addressId, [FromBody] UserAddressDTO DTO)
+		public async Task<IActionResult> UpdateAddress(Guid addressId, [FromBody] UserAddressDTO DTO)
 		{
 			DTO.AddressId = addressId;
 			var response = await _userService.UpdateAddress(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updatepayroll")]
+		[HttpPost("updatepayroll/{payrollId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdatePayroll([FromQuery] Guid payrollId, [FromBody] UserPayrollDTO DTO)
+		public async Task<IActionResult> UpdatePayroll(Guid payrollId, [FromBody] UserPayrollDTO DTO)
 		{
 			DTO.PayrollId = payrollId;
 			var response = await _userService.UpdatePayroll(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updatesocial")]
+		[HttpPost("updatesocial/{socialId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateSocial([FromQuery] Guid socialId, [FromBody] UserSocialDTO DTO)
+		public async Task<IActionResult> UpdateSocial(Guid socialId, [FromBody] UserSocialDTO DTO)
 		{
 			DTO.SocialId = socialId;
 			var response = await _userService.UpdateSocial(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updatefinancial")]
+		[HttpPost("updatefinancial/{financialId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateFinancial([FromQuery] Guid financialId, [FromBody] UserFinancialDTO DTO)
+		public async Task<IActionResult> UpdateFinancial(Guid financialId, [FromBody] UserFinancialDTO DTO)
 		{
 			DTO.FinancialId = financialId;
 			var response = await _userService.UpdateFinancial(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updatecontact")]
+		[HttpPost("updatecontact/{contactId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateContact([FromQuery] Guid contactId, [FromBody] UserContactDTO DTO)
+		public async Task<IActionResult> UpdateContact(Guid contactId, [FromBody] UserContactDTO DTO)
 		{
 			DTO.ContactId = contactId;
 			var response = await _userService.UpdateContact(DTO);
 			return Ok(response);
 		}
 
-		[HttpPost("updateemploymentinformation")]
+		[HttpPost("updateemploymentinformation/{employmentInformationId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateEmploymentInformation([FromQuery] Guid employmentInformationId, [FromBody] UserEmploymentInformationDTO DTO)
+		public async Task<IActionResult> UpdateEmploymentInformation(Guid employmentInformationId, [FromBody] UserEmploymentInformationDTO DTO)
 		{
 			DTO.EmploymentInformationId = employmentInformationId;
 			var response = await _userService.UpdateEmploymentInformation(DTO);

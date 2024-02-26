@@ -22,7 +22,7 @@ namespace Bob.Core.Services.IServices
 
 		Task<APIResponse<CommentResponseDTO>> CreateComment(Guid postId, CreateCommentRequestDTO DTO);
 		Task<APIResponse<CommentResponseDTO>> UpdateComment(UpdateCommentDTO DTO);
-		Task<APIResponse<List<GetCommentDTO>>> GetComment(PostPaginationDTO DTO);
+		Task<APIResponse<List<GetCommentDTO>>> GetComment(CommentPaginationDTO DTO);
 		Task<APIResponse<CommentResponseDTO>> DeleteAComment(DeletePostDTO DTO);
 	}
 }

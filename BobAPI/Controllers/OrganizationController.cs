@@ -25,13 +25,8 @@ namespace BobAPI.Controllers
 
 		[HttpGet("getall")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<IActionResult> GetAllOrganizations(int pageNumber = 1, int pageSize = 0)
+		public async Task<IActionResult> GetAllOrganizations([FromQuery] PaginationDTO DTO)
 		{
-			PaginationDTO DTO = new()
-			{
-				PageNumber = pageNumber,
-				PageSize = pageSize
-			};
 			var response = await _organizationService.GetAllOrganizations(DTO);
 			return Ok(response);
 		}

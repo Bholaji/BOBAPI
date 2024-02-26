@@ -9,8 +9,8 @@ using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.ShoutoutDTO;
 using Bob.Model.Entities;
 using Bob.Model.Entities.Home;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using InvalidOperationException = Bob.Core.Exceptions.InvalidOperationException;
 
 namespace Bob.Core.Services
@@ -31,14 +31,10 @@ namespace Bob.Core.Services
 			User user = await _unitOfWork.User.GetAsync(u => u.Id == postRequestDTO.UserId);
 			if (user is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
 			}
 			Post post = _mapper.Map<Post>(postRequestDTO);
 
-			if (post is null)
-			{
-				throw new NotFoundException(ResponseMessage.NotFound);
-			}
 			post.OrganizationId = user.OrganizationId;
 			post.UserId = user.Id;
 			await _unitOfWork.Post.CreateAsync(post);
@@ -57,11 +53,11 @@ namespace Bob.Core.Services
 
 		public async Task<APIResponse<PostResponseDTO>> UpdatePost(UpdatePostRequestDTO postRequestDTO)
 		{
-			Post oldPost = await _unitOfWork.Post.GetAsync(u => u.Id == postRequestDTO.UserId);
+			Post oldPost = await _unitOfWork.Post.GetAsync(u => u.Id == postRequestDTO.PostId);
 
 			if (oldPost is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 
 			oldPost.Title = postRequestDTO.Title ?? oldPost.Title;
@@ -88,7 +84,7 @@ namespace Bob.Core.Services
 
 			if (posts is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 
 			return new APIResponse<List<GetPostDTO>>
@@ -104,7 +100,7 @@ namespace Bob.Core.Services
 			Post post = await _unitOfWork.Post.GetAsync(u => u.Id == postId);
 			if (post is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 			return new APIResponse<GetPostDTO>
 			{
@@ -120,15 +116,15 @@ namespace Bob.Core.Services
 
 			if (post is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 
 			TimeSpan timeSpan = DateTime.UtcNow - post.CreationDate;
 			TimeSpan deleteThreshold = TimeSpan.FromMinutes(30);
 
-			if(timeSpan.TotalMinutes < deleteThreshold.TotalMinutes)
+			if(timeSpan.TotalMinutes > deleteThreshold.TotalMinutes)
 			{
-				throw new InvalidOperationException("Cannot delete the post until 30 minutes after posting.");
+				throw new InvalidOperationException(ResponseMessage.DeletePostError);
 			}
 			await _unitOfWork.Post.RemoveAsync(post);
 			await _unitOfWork.SaveAsync();
@@ -152,7 +148,7 @@ namespace Bob.Core.Services
 
 			if(post is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 
 			Comment comment = _mapper.Map<Comment>(DTO);
@@ -179,7 +175,7 @@ namespace Bob.Core.Services
 
 			if(comment is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Comment)} {ResponseMessage.NotFound}");
 			}
 
 			comment.CommentBody = DTO.CommentBody ?? comment.CommentBody;
@@ -198,21 +194,21 @@ namespace Bob.Core.Services
 			return response;
 		}
 
-		public async Task<APIResponse<List<GetCommentDTO>>> GetComment(PostPaginationDTO DTO)
+		public async Task<APIResponse<List<GetCommentDTO>>> GetComment(CommentPaginationDTO DTO)
 		{
 
 			Post post = await _unitOfWork.Post.GetAsync(u => u.Id == DTO.PostId);
 
 			if (post is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 
 			}
 			var comment = await _unitOfWork.Comment.GetAllAsync(u=>u.PostId == DTO.PostId,  pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
 
 			if(comment.Count == 0)
 			{
-				throw new NotFoundException("No Comment available");
+				throw new NotFoundException(ResponseMessage.NoComment);
 			}
 
 			return new APIResponse<List<GetCommentDTO>>
@@ -231,21 +227,23 @@ namespace Bob.Core.Services
 
 			if (post is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Post)} {ResponseMessage.NotFound}");
 			}
 			comment = await _unitOfWork.Comment.GetAsync(u => u.Id == DTO.CommentId);
 
 			if (comment is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Comment)} {ResponseMessage.NotFound}");
 			}
 
 			TimeSpan timeSpan = DateTime.UtcNow - comment.CreationDate;
+
+			//let it come from appsetings
 			TimeSpan deleteThreshold = TimeSpan.FromMinutes(30);
 
-			if(timeSpan.TotalMinutes < deleteThreshold.TotalMinutes)
+			if(timeSpan.TotalMinutes > deleteThreshold.TotalMinutes)
 			{
-				throw new InvalidOperationException("Cannot delete the post until 30 minutes after posting.");
+				throw new InvalidOperationException(ResponseMessage.DeleteCommentError);
 			}
 
 			await _unitOfWork.Comment.RemoveAsync(comment);

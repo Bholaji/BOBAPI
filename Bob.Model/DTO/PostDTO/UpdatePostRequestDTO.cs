@@ -11,7 +11,7 @@ namespace Bob.Model.DTO.PostDTO
 	public class UpdatePostRequestDTO
 	{
 		[JsonIgnore]
-		public Guid UserId { get; set; }
+		public Guid PostId { get; set; }
 		[MaxLength(50)]
 		public string? Title { get; set; }
 		[MaxLength(500)]

@@ -1,19 +1,19 @@
-﻿using Bob.Core.Services;
-using Bob.Core.Services.IServices;
-using Bob.DataAccess.Repository.IRepository;
+﻿using Bob.Core.Services.IServices;
 using Bob.Model.DTO.CommentDTO;
 using Bob.Model.DTO.PaginationDTO;
 using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.ShoutoutDTO;
+using Bob.Model.DTO.TaskDTO;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BobAPI.Controllers
 {
 	[Route("api/post")]
 	[ApiController]
-	public class PostController(IPostService postService) : ControllerBase
+	public class PostController(IPostService postService, ITaskService taskService) : ControllerBase
 	{
 		private readonly IPostService _postService = postService;
+		private readonly ITaskService _taskService = taskService;
 
 
 		[HttpPost("create")]
@@ -27,14 +27,14 @@ namespace BobAPI.Controllers
 
 		}
 
-		[HttpPost("update", Name = "updatepost")]
+		[HttpPost("{postId}/updatepost")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdatePost([FromQuery] Guid postId, [FromBody] UpdatePostRequestDTO postRequestDTO)
+		public async Task<IActionResult> UpdatePost(Guid postId, [FromBody] UpdatePostRequestDTO postRequestDTO)
 		{
-			postRequestDTO.UserId = postId;
+			postRequestDTO.PostId = postId;
 			var response = await _postService.UpdatePost(postRequestDTO);
 			return Ok(response);
 		}
@@ -44,34 +44,29 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> GetAllPost(int pageNumber = 1, int pageSize = 0)
+		public async Task<IActionResult> GetAllPost([FromQuery]PaginationDTO DTO)
 		{
-			PaginationDTO DTO = new()
-			{
-				PageNumber = pageNumber,
-				PageSize = pageSize
-			};
 			var response = await _postService.GetPosts(DTO);
 			return Ok(response);
 		}
 
-		[HttpGet("get")]
+		[HttpGet("get/{postId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> GetPost([FromQuery] Guid postId)
+		public async Task<IActionResult> GetPost(Guid postId)
 		{
 			var response = await _postService.GetAPost(postId);
 			return Ok(response);
 		}
 
-		[HttpDelete("delete")]
+		[HttpDelete("delete/{postId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> DeletePost([FromQuery] Guid postId)
+		public async Task<IActionResult> DeletePost(Guid postId)
 		{
 			var response = await _postService.DeleteAPost(postId);
 			return Ok(response);
@@ -108,15 +103,15 @@ namespace BobAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> GetComment(Guid postId, int pageNumber = 1, int pageSize = 0)
+		public async Task<IActionResult> GetComment(Guid postId, [FromQuery]PaginationDTO dto)
 		{
-			PostPaginationDTO DTO = new()
+			CommentPaginationDTO commentDto = new()
 			{
 				PostId = postId,
-				PageNumber = pageNumber,
-				PageSize = pageSize
+				PageNumber = dto.PageNumber,
+				PageSize = dto.PageSize
 			};
-			var response = await _postService.GetComment(DTO);
+			var response = await _postService.GetComment(commentDto);
 			return Ok(response);
 		}
 

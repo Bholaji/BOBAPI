@@ -7,6 +7,7 @@ using Bob.Model.DTO;
 using Bob.Model.DTO.PaginationDTO;
 using Bob.Model.DTO.UserDTO;
 using Bob.Model.Entities;
+using Bob.Model.Entities.Home;
 using Microsoft.Extensions.Logging;
 
 namespace Bob.Core.Services
@@ -16,7 +17,6 @@ namespace Bob.Core.Services
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
 		private readonly ILogger<UserService> _logger;
-		// public DbSet<User> _userDb { get; set; }
 		public UserService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UserService> logger)
 		{
 			_unitOfWork = unitOfWork;
@@ -28,11 +28,6 @@ namespace Bob.Core.Services
 		{
 			IEnumerable<User> users = await _unitOfWork.User.GetAllAsync(pageSize: DTO.PageSize, pageNumber: DTO.PageNumber);
 
-			if(users is null)
-			{
-				throw new NotFoundException(ResponseMessage.NotFound);
-			}
-
 			return new APIResponse<List<UserResponseDTO>>
 			{
 				IsSuccess = true,
@@ -40,14 +35,13 @@ namespace Bob.Core.Services
 				Result = _mapper.Map<List<UserResponseDTO>>(users)
 			};
 		}
-
 		public async Task<APIResponse<UserResponseDTO>> GetUser(Guid userId)
 		{
 			var user = await _unitOfWork.User.GetAsync(u => u.Id == userId);
 
 			if (user is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
 			}
 
 			return new APIResponse<UserResponseDTO>
@@ -58,35 +52,23 @@ namespace Bob.Core.Services
 
 			};
 		}
-		private async Task<int> GetEmployeeId(Guid organizationId)
-		{
-			int employeeId = await _unitOfWork.User.CountAsync(u=>u.OrganizationId == organizationId);
-
-			var users = await _unitOfWork.User.GetAllAsync();
-
-			if (employeeId is not 0)
-			{
-				return employeeId + 1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
+		private async Task<int> GenerateEmployeeId(Guid organizationId) => (await _unitOfWork.User.CountAsync(u => u.OrganizationId == organizationId))+ 1;
 		public async Task<APIResponse<UserCompositeDTO>> CreateUser(UserCompositeDTO userCompositeDTO)
 		{
 			User user = _mapper.Map<User>(userCompositeDTO.User);
 
-			if (user is null)
+			var organization = _unitOfWork.OrganizationRepository.GetAsync(u => u.Id == userCompositeDTO.User.OrganizationId);
+
+			if (organization is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(Organization)} {ResponseMessage.NotFound}");
 			}
+
 			var today = DateTime.Now;
 			user.CreationDate = today;
 			user.ModificationDate = today;
 			user.SetFullName();
-
-			var employeeId = await GetEmployeeId(user.OrganizationId);
+			var employeeId = await GenerateEmployeeId(user.OrganizationId);
 
 			_unitOfWork.BeginTransaction();
 
@@ -172,7 +154,7 @@ namespace Bob.Core.Services
 
 			if (oldUser is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
 			}
 
 			oldUser.FirstName = DTO.FirstName ?? oldUser.FirstName;
@@ -208,7 +190,7 @@ namespace Bob.Core.Services
 
 			if (userAddress is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserAddress)} {ResponseMessage.NotFound}");
 			}
 			userAddress.AddressLine1 = DTO.AddressLine1 ?? userAddress.AddressLine1;
 			userAddress.AddressLine2 = DTO.AddressLine2 ?? userAddress.AddressLine2;
@@ -235,7 +217,7 @@ namespace Bob.Core.Services
 
 			if (userpayroll is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserPayroll)} {ResponseMessage.NotFound}");
 			}
 			userpayroll.EffectiveDate = DTO.EffectiveDate ?? userpayroll.EffectiveDate;
 			userpayroll.BaseSalary = DTO.BaseSalary ?? userpayroll.BaseSalary;
@@ -258,7 +240,7 @@ namespace Bob.Core.Services
 
 			if (userSocial is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserSocial)} {ResponseMessage.NotFound}");
 			}
 			userSocial.About = DTO.About ?? userSocial.About;
 			userSocial.Socials = DTO.Socials ?? userSocial.Socials;
@@ -282,7 +264,7 @@ namespace Bob.Core.Services
 
 			if (userFinancial is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserFinancial)} {ResponseMessage.NotFound}");
 			}
 			userFinancial.AccountName = DTO.AccountName ?? userFinancial.AccountName;
 			userFinancial.RatingNumber = DTO.RatingNumber ?? userFinancial.RatingNumber;
@@ -308,7 +290,7 @@ namespace Bob.Core.Services
 
 			if (userContact is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserContact)} {ResponseMessage.NotFound}");
 			}
 			userContact.PersonalEmail = DTO.PersonalEmail ?? userContact.PersonalEmail;
 			userContact.PhoneNumber = DTO.PhoneNumber ?? userContact.PhoneNumber;
@@ -336,7 +318,7 @@ namespace Bob.Core.Services
 			var userEmploymentInformation = await _unitOfWork.EmploymentInformation.GetAsync(u => u.Id == DTO.EmploymentInformationId);
 			if (userEmploymentInformation is null)
 			{
-				throw new NotFoundException(ResponseMessage.NotFound);
+				throw new NotFoundException($"{nameof(UserEmploymentInformation)} {ResponseMessage.NotFound}");
 			}
 			userEmploymentInformation.EffectiveDate = DTO.EffectiveDate ?? userEmploymentInformation.EffectiveDate;
 			userEmploymentInformation.EmploymentDate = DTO.EmploymentDate ?? userEmploymentInformation.EmploymentDate;
