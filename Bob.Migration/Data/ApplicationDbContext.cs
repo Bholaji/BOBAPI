@@ -1,6 +1,7 @@
 ﻿
 using Bob.Model.Entities;
 using Bob.Model.Entities.Home;
+using Bob.Model.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bob.Migrations.Data
@@ -90,37 +91,5 @@ namespace Bob.Migrations.Data
 				.OnDelete(DeleteBehavior.Restrict);
 		}
 
-		public async Task SaveTaskChanges(UserTask task)
-		{
-			 await SaveTaskAndLogActivities(task);
-
-			await base.SaveChangesAsync();
-		}
-
-		private async Task SaveTaskAndLogActivities(UserTask task)
-		{
-			var logActivity = new ActivityLogUtility(this);
-			var modifiedEntries = ChangeTracker.Entries<UserTask>()
-								.Where(e => e.State == EntityState.Modified || e.State == EntityState.Added)
-								.ToList();
-
-
-			foreach (var entry in modifiedEntries)
-			{
-				var originalValues = entry.OriginalValues;
-				var currentValues = entry.CurrentValues;
-
-				if(entry.State == EntityState.Added) {
-
-					await logActivity.LogActivity(task, true);
-				}
-
-				if (entry.State != EntityState.Added && originalValues[nameof(UserTask.TaskStatus)] != currentValues[nameof(UserTask.TaskStatus)])
-				{
-					await logActivity.LogActivity(task, false);
-
-				}
-			}
-		}
 	}
 }

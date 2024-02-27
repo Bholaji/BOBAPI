@@ -17,6 +17,7 @@ namespace Bob.DataAccess.Repository
 		public IPostRepository Post { get; private set; }
 		public ICommentRepository Comment { get; private set; }
 		public ITaskRepository UserTask { get; private set; }
+		public IActivityLogRepository ActivityLog { get; private set; }
 
 		private ApplicationDbContext _db;
 
@@ -34,6 +35,7 @@ namespace Bob.DataAccess.Repository
 			Post = new PostRepository(_db);
 			Comment = new CommentRepository(_db);
 			UserTask = new TaskRepository(_db);
+			ActivityLog = new ActivityLogRepository(_db);
 		}
 
 		public void BeginTransaction()

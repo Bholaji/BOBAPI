@@ -7,9 +7,6 @@ namespace Bob.Model.Entities
 	{
 		public Guid ActivityLogId { get; set; }
 		public Guid TaskId { get; set; }
-		[ForeignKey("TaskId")]
-		[ValidateNever]
-		public UserTask Task { get; set; }
 		public Guid UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]

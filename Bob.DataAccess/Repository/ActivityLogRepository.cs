@@ -1,4 +1,7 @@
-﻿using Bob.Model.Entities.Home;
+﻿using Bob.DataAccess.Repository.IRepository;
+using Bob.Migrations.Data;
+using Bob.Model.Entities;
+using Bob.Model.Entities.Home;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,16 +10,17 @@ using Task = Bob.Model.Entities.UserTask;
 
 namespace Bob.DataAccess.Repository
 {
-	public class ActivityLogRepository
+	public class ActivityLogRepository : Repository<ActivityLog>, IActivityLogRepository
 	{
-		/*private void LogActivity(Task task)
+		private readonly ApplicationDbContext _db;
+        public ActivityLogRepository(ApplicationDbContext db):base(db)
+        {
+			_db = db;
+        }
+        public ActivityLog Update(ActivityLog entity)
 		{
-			var currentUser = task.User;
-
-			if(currentUser is null)
-			{
-				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
-			}
-		}*/
+			_db.Update(entity);
+			return entity;
+		}
 	}
 }

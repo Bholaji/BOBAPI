@@ -6,11 +6,9 @@ using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
 using Bob.Model;
 using Bob.Model.DTO.PaginationDTO;
-using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.TaskDTO;
 using Bob.Model.Entities;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace Bob.Core.Services
 {
@@ -28,99 +26,136 @@ namespace Bob.Core.Services
 			_db = db;
 		}
 
-		public async Task<APIResponse<TaskRequestDTO>> CreateTask(TaskRequestDTO DTO)
+		public async Task<APIResponse<CreateTaskResponse>> CreateTask(CreateTaskRequestDTO DTO)
 		{
+			IEnumerable<User> users;
+			UserTask tasks = null;
 
-			User currentUser = await _unitOfWork.User.GetAsync(u => u.Id == DTO.UserId);
-
-			if (currentUser is null)
+			if (DTO.isGeneral is true)
 			{
-				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
+				users = await _unitOfWork.User.GetAllAsync(U => U.OrganizationId == DTO.OrganizationId);
+
+			}
+			else
+			{
+				users = await _unitOfWork.User.GetAllAsync(u => DTO.RequestedFor.Contains(u.Id));
 			}
 
-			UserTask task = _mapper.Map<UserTask>(DTO);
+			foreach (var user in users)
+			{
+				var currentUser = await _unitOfWork.User.GetAsync(u => u.Id == DTO.RequestedBy);
+				tasks = _mapper.Map<UserTask>(DTO);
 
-			task.UserId = currentUser.Id;
+				tasks.RequestedForId = user.Id;
 
+				tasks.RequestedById = currentUser.Id;
 
-			await _unitOfWork.UserTask.CreateAsync(task);
-			await _db.SaveTaskChanges(task);
+				var activityLog = new ActivityLog()
+				{
+					TaskId = tasks.Id,
+					UserId = user.Id,
+					Activity = $"Task created by {currentUser.DispalyName} at {DateTime.Now}"
+				};
 
-			var response = new APIResponse<TaskRequestDTO>
+				await _unitOfWork.UserTask.CreateAsync(tasks);
+				await _unitOfWork.ActivityLog.CreateAsync(activityLog);
+
+				await _unitOfWork.SaveAsync();
+			}
+
+			var response = new APIResponse<CreateTaskResponse>
 			{
 				IsSuccess = true,
 				Message = ResponseMessage.IsSuccess,
-				Result = _mapper.Map<TaskRequestDTO>(task)
+				Result = _mapper.Map<CreateTaskResponse>(tasks)
 			};
 
-			response.Result.TaskId = task.TaskId;
+			response.Result.TaskId = tasks.Id;
 			return response;
 
 		}
 
-		public async Task<APIResponse<UpdateTaskDTO>> UpdateTask(UpdateTaskDTO DTO)
+		public async Task<APIResponse<List<UpdateTaskDTO>>> UpdateTask(UpdateTaskDTO DTO)
 		{
-			User user = await _unitOfWork.User.GetAsync(u => u.Id == DTO.UserId);
-			UserTask task = await _unitOfWork.UserTask.GetAsync(u => u.TaskId == DTO.TaskId);
+			IEnumerable<UserTask> tasks;
 
-			if (user is null)
+			if (DTO.isGeneral is true)
 			{
-				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
+				tasks = await _unitOfWork.UserTask.GetAllAsync(U => U.OrganizationId == DTO.OrganizationId);
+
 			}
+			else
+			{
+				tasks = await _unitOfWork.UserTask.GetAllAsync(u => DTO.RequestedFor.Contains(u.RequestedForId));
+			}
+
+			foreach (var currentTask in tasks)
+			{
+				var currentUser = await _unitOfWork.User.GetAsync(u => u.Id == DTO.RequestedBy);
+
+				if (currentUser is null) {
+
+					throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
+				}
+
+				var activityLog = new ActivityLog()
+				{
+					TaskId = currentTask.Id,
+					UserId = currentTask.RequestedForId,
+					Activity = $"Task Updated by {currentUser.DispalyName} at {DateTime.Now}"
+				};
+
+				currentTask.TaskName = DTO.TaskName ?? currentTask.TaskName;
+				currentTask.TaskDescription = DTO.TaskDescription ?? currentTask.TaskDescription;
+				currentTask.TaskList = DTO.TaskList ?? currentTask.TaskList;
+				currentTask.DueDate = DTO.DueDate ?? currentTask.DueDate;
+				currentTask.StartDate = DTO.StartDate ?? currentTask.StartDate;
+				currentTask.TaskStatus = DTO.TaskStatus ?? currentTask.TaskStatus;
+
+				_unitOfWork.UserTask.Update(currentTask);
+
+				await _unitOfWork.ActivityLog.CreateAsync(activityLog);
+
+				await _unitOfWork.SaveAsync();
+			}
+
+			return new APIResponse<List<UpdateTaskDTO>>
+			{
+				IsSuccess = true,
+				Message = ResponseMessage.IsSuccess,
+				Result = _mapper.Map<List<UpdateTaskDTO>>(tasks)
+			};
+
+		}
+
+		public async Task<APIResponse<string>> ToogleStatus(ToogleStatusDTO DTO)
+		{
+			UserTask task = await _unitOfWork.UserTask.GetAsync(u => u.Id == DTO.TaskId);
+			User user = await _unitOfWork.User.GetAsync(u => u.Id == task.RequestedForId);
 
 			if (task is null)
 			{
 				throw new NotFoundException($"{nameof(UserTask)} {ResponseMessage.NotFound}");
 			}
 
-			task.TaskName = DTO.TaskName ?? task.TaskName;
-			task.RequestedFor = DTO.RequestedFor ?? task.RequestedFor;
-			task.TaskDescription = DTO.TaskDescription ?? task.TaskDescription;
-			task.TaskList = DTO.TaskList ?? task.TaskList;
-			task.DueDate = DTO.DueDate ?? task.DueDate;
-			task.StartDate = DTO.StartDate ?? task.StartDate;
-			task.TaskStatus = DTO.TaskStatus ?? task.TaskStatus;
+			task.TaskStatus = DTO.TaskStatus;
 
+			var activityLog = new ActivityLog()
+			{
+				TaskId = task.Id,
+				UserId = task.RequestedForId,
+				Activity = $"Task Status was updated by {user.DispalyName} at {DateTime.Now}"
+			};
 			_unitOfWork.UserTask.Update(task);
+			await _unitOfWork.ActivityLog.CreateAsync(activityLog);
+			await _unitOfWork.SaveAsync();
 
-			await _db.SaveTaskChanges(task);
-
-			var response = new APIResponse<UpdateTaskDTO>
+			return new APIResponse<string>
 			{
 				IsSuccess = true,
 				Message = ResponseMessage.IsSuccess,
-				Result = _mapper.Map<UpdateTaskDTO>(task)
+				Result = "Status Updated Successfully"
 			};
-
-			response.Result.TaskId = task.TaskId;
-			return response;
-
-		}
-
-		public async Task<APIResponse<ToogleStatusDTO>> ToogleStatus(ToogleStatusDTO DTO)
-		{
-			UserTask task = await _unitOfWork.UserTask.GetAsync(u => u.TaskId == DTO.TaskId);
-
-			if (task is null)
-			{
-				throw new NotFoundException($"{nameof(UserTask)} {ResponseMessage.NotFound}");
-			}
-
-			task.TaskStatus = DTO.TaskStatus ?? task.TaskStatus;
-
-			_unitOfWork.UserTask.Update(task);
-
-			await _db.SaveTaskChanges(task);
-
-			var response = new APIResponse<ToogleStatusDTO>
-			{
-				IsSuccess = true,
-				Message = ResponseMessage.IsSuccess,
-				Result = _mapper.Map<ToogleStatusDTO>(task)
-			};
-
-			response.Result.TaskId = task.TaskId;
-			return response;
 		}
 
 		public async Task<APIResponse<List<GetUserTaskDTO>>> GetUserTasks(TaskPaginationDTO DTO)
@@ -133,37 +168,38 @@ namespace Bob.Core.Services
 			}
 
 			IEnumerable<UserTask> task = await _unitOfWork.UserTask
-				.GetAllAsync(u => u.UserId == DTO.UserId, pageNumber: DTO.PageNumber, pageSize: DTO.PageSize);
+				.GetAllAsync(u => u.RequestedForId == DTO.UserId, pageNumber: DTO.PageNumber, pageSize: DTO.PageSize);
+
+			var mappedList = _mapper.Map<List<GetUserTaskDTO>>(task);
 
 			return new APIResponse<List<GetUserTaskDTO>>
 			{
 				IsSuccess = true,
 				Message = ResponseMessage.IsSuccess,
-				Result = _mapper.Map<List<GetUserTaskDTO>>(task)
+				Result = mappedList
 			};
 
 		}
 
-		public async Task<APIResponse<GetUserTaskDTO>> GetATask(TaskPaginationDTO DTO)
+		public async Task<APIResponse<GetUserTaskDTO>> GetATask(Guid TaskId)
 		{
-			User user = await _unitOfWork.User.GetAsync(u => u.Id == DTO.UserId);
+			UserTask task = await _unitOfWork.UserTask.GetAsync(u => u.Id == TaskId);
+			User user = await _unitOfWork.User.GetAsync(u => u.Id == task.RequestedForId);
 
 			if (user is null)
 			{
 				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
 			}
-			UserTask task = await _unitOfWork.UserTask.GetAsync(u => u.TaskId == DTO.TaskId);
-
 			if (task is null)
 			{
 				throw new NotFoundException($"{nameof(UserTask)} {ResponseMessage.NotFound}");
 			}
-
+			var mappedList = _mapper.Map<GetUserTaskDTO>(task);
 			return new APIResponse<GetUserTaskDTO>
 			{
 				IsSuccess = true,
 				Message = ResponseMessage.IsSuccess,
-				Result = _mapper.Map<GetUserTaskDTO>(task)
+				Result = mappedList
 			};
 
 		}

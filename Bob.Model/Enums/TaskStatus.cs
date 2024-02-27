@@ -11,4 +11,11 @@ namespace Bob.Model.Enums
 		Completed = 1,
 		Incomplete
 	}
+
+	public enum TaskActivity
+	{
+		Created,
+		Updated,
+		StatusUpdate
+	}
 }

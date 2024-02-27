@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bob.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240223102428_removedIsUniqueEmploeeId")]
-    partial class removedIsUniqueEmploeeId
+    [Migration("20240227110754_updateActivityLogTable")]
+    partial class updateActivityLogTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,32 @@ namespace Bob.Migrations.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Bob.Model.Entities.ActivityLog", b =>
+                {
+                    b.Property<Guid>("ActivityLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Activity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ActivityLogId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ActivityLogs");
+                });
 
             modelBuilder.Entity("Bob.Model.Entities.Department", b =>
                 {
@@ -661,6 +687,69 @@ namespace Bob.Migrations.Migrations
                     b.ToTable("UserSocials");
                 });
 
+            modelBuilder.Entity("Bob.Model.Entities.UserTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RequestedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RequestedForId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TaskDescription")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TaskList")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TaskName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TaskStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("Bob.Model.Entities.ActivityLog", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Bob.Model.Entities.Home.Comment", b =>
                 {
                     b.HasOne("Bob.Model.Entities.Organization", "organization")
@@ -871,6 +960,17 @@ namespace Bob.Migrations.Migrations
                     b.Navigation("organization");
                 });
 
+            modelBuilder.Entity("Bob.Model.Entities.UserTask", b =>
+                {
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserTasks")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("organization");
+                });
+
             modelBuilder.Entity("Bob.Model.Entities.Organization", b =>
                 {
                     b.Navigation("User");
@@ -886,6 +986,8 @@ namespace Bob.Migrations.Migrations
                     b.Navigation("UserPayrolls");
 
                     b.Navigation("UserSocials");
+
+                    b.Navigation("UserTasks");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.Permission", b =>

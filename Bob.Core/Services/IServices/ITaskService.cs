@@ -10,10 +10,11 @@ namespace Bob.Core.Services.IServices
 {
 	public interface ITaskService
 	{
-		Task<APIResponse<TaskRequestDTO>> CreateTask(TaskRequestDTO DTO);
-		Task<APIResponse<ToogleStatusDTO>> ToogleStatus(ToogleStatusDTO DTO);
+		Task<APIResponse<CreateTaskResponse>> CreateTask(CreateTaskRequestDTO DTO);
+		Task<APIResponse<List<UpdateTaskDTO>>> UpdateTask(UpdateTaskDTO DTO);
+		Task<APIResponse<string>> ToogleStatus(ToogleStatusDTO DTO);
 		Task<APIResponse<List<GetUserTaskDTO>>> GetUserTasks(TaskPaginationDTO DTO);
-		Task<APIResponse<GetUserTaskDTO>> GetATask(TaskPaginationDTO DTO);
-		Task<APIResponse<UpdateTaskDTO>> UpdateTask(UpdateTaskDTO DTO);
+		Task<APIResponse<GetUserTaskDTO>> GetATask(Guid TaskId);
+
 	}
 }

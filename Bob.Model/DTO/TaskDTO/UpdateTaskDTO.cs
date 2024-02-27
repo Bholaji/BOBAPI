@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -12,14 +13,15 @@ namespace Bob.Model.DTO.TaskDTO
 	{
 		[JsonIgnore]
 		public Guid TaskId { get; set; }
+		public Guid RequestedBy { get; set; }
+		public List<Guid> RequestedFor { get; set; }
 		public string? TaskName { get; set; }
-		public string? RequestedFor { get; set; }
 		public string? TaskDescription { get; set; }
 		public string? TaskList { get; set; }
-		public DateOnly? DueDate { get; set; }
-		public DateOnly? StartDate { get; set; }
+		public DateTime? DueDate { get; set; }
+		public DateTime? StartDate { get; set; }
 		public TaskStatus? TaskStatus { get; set; }
-		[JsonIgnore]
-		public Guid? UserId { get; set; }
+		public bool? isGeneral { get; set; }
+		public Guid OrganizationId { get; set; }
 	}
 }

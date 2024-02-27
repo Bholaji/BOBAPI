@@ -21,5 +21,6 @@ namespace Bob.Model.Entities
         public IEnumerable<UserFinancial> UserFinancials { get; set; }
         public IEnumerable<UserPayroll> UserPayrolls { get; set; }
 		public IEnumerable<UserSocial> UserSocials { get; set; }
+		public IEnumerable<UserTask> UserTasks { get; set; }
 	}
 }

@@ -12,6 +12,6 @@ namespace Bob.Model.DTO.TaskDTO
 	{
 		[JsonIgnore]
 		public Guid TaskId { get; set; }
-		public TaskStatus? TaskStatus { get; set; }
+		public TaskStatus TaskStatus { get; set; }
 	}
 }

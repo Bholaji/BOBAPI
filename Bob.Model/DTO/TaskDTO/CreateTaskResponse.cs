@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Bob.Model.DTO.PaginationDTO
+namespace Bob.Model.DTO.TaskDTO
 {
-	public class TaskPaginationDTO: PaginationDTO
+	public class CreateTaskResponse
 	{
-		public Guid UserId { get; set; }
+		[JsonIgnore]
+		public Guid TaskId { get; set; }
 	}
 }

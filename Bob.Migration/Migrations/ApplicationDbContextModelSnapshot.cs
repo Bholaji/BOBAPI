@@ -43,8 +43,6 @@ namespace Bob.Migrations.Migrations
 
                     b.HasKey("ActivityLogId");
 
-                    b.HasIndex("TaskId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("ActivityLogs");
@@ -688,60 +686,63 @@ namespace Bob.Migrations.Migrations
 
             modelBuilder.Entity("Bob.Model.Entities.UserTask", b =>
                 {
-                    b.Property<Guid>("TaskId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<string>("RequestedFor")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ModificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RequestedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RequestedForId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TaskDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("TaskList")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TaskName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TaskStatus")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.HasKey("Id");
 
-                    b.HasKey("TaskId");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.ActivityLog", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.UserTask", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Bob.Model.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Task");
 
                     b.Navigation("User");
                 });
@@ -958,11 +959,13 @@ namespace Bob.Migrations.Migrations
 
             modelBuilder.Entity("Bob.Model.Entities.UserTask", b =>
                 {
-                    b.HasOne("Bob.Model.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                    b.HasOne("Bob.Model.Entities.Organization", "organization")
+                        .WithMany("UserTasks")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("organization");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.Organization", b =>
@@ -980,6 +983,8 @@ namespace Bob.Migrations.Migrations
                     b.Navigation("UserPayrolls");
 
                     b.Navigation("UserSocials");
+
+                    b.Navigation("UserTasks");
                 });
 
             modelBuilder.Entity("Bob.Model.Entities.Permission", b =>
