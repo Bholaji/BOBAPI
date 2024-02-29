@@ -28,6 +28,7 @@ namespace Bob.Migrations.Data
 		public DbSet<Comment> Comments { get; set; }
 		public DbSet<UserTask> Tasks { get; set; }
 		public DbSet<ActivityLog> ActivityLogs { get; set; }
+		public DbSet<TaskJob> TaskJobs { get; set; }
 
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,6 +38,12 @@ namespace Bob.Migrations.Data
 					.HasOne(u => u.organization)
 					.WithMany(x => x.User)
 					.HasForeignKey(u => u.OrganizationId)
+					.OnDelete(DeleteBehavior.Restrict);
+
+			modelBuilder.Entity<UserTask>()
+					.HasOne(u => u.TaskJobs)
+					.WithMany(x => x.UserTasks)
+					.HasForeignKey(u => u.TaskJobId)
 					.OnDelete(DeleteBehavior.Restrict);
 
 			//Composite index of employee id and organizationid

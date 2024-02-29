@@ -26,14 +26,27 @@ namespace BobAPI.Controllers
 			return Ok(response);
 		}
 
-		[HttpPost("updatetask")]
+		[HttpPost("updatetask/{taskJobId}")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 
-		public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskDTO DTO)
+		public async Task<IActionResult> UpdateTask(Guid taskJobId,[FromBody] UpdateTaskDTO DTO)
 		{
+			DTO.TaskJobId = taskJobId;
 			var response = await _taskService.UpdateTask(DTO);
+			return Ok(response);
+		}
+
+		[HttpPost("updatetaskrequestedfor/{taskJobId}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+
+		public async Task<IActionResult> UpdateTaskWithRequestedFor(Guid taskJobId, [FromBody] UpdateTaskWithRequestedFor DTO)
+		{
+			DTO.TaskJobId = taskJobId;
+			var response = await _taskService.UpdateTaskWithRequestedFor(DTO);
 			return Ok(response);
 		}
 

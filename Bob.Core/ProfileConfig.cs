@@ -49,14 +49,22 @@ namespace Bob.Core
 
 			
 			CreateMap<ToogleStatusDTO, UserTask>().ReverseMap();
-
 			CreateMap<GetUserTaskDTO, UserTask>().ReverseMap();
 			CreateMap<GetUserTaskDTO, User>().ReverseMap();
-
 			CreateMap<CreateTaskRequestDTO, UserTask>().ReverseMap();
 			CreateMap<CreateTaskResponse, UserTask>().ReverseMap();
-
 			CreateMap<UpdateTaskDTO, UserTask>().ReverseMap();
+
+			CreateMap<UpdateTaskDTO, TaskJob>().ReverseMap();
+			CreateMap<ToogleStatusDTO, TaskJob>().ReverseMap();
+			CreateMap<GetUserTaskDTO, TaskJob>().ReverseMap();
+			CreateMap<GetUserTaskDTO, TaskJob>().ReverseMap();
+			CreateMap<CreateTaskRequestDTO, TaskJob>().ReverseMap();
+			CreateMap<CreateTaskResponse, TaskJob>().ReverseMap();
+
+			CreateMap<UpdateTaskWithRequestedFor, TaskJob>().ReverseMap();
+			CreateMap<UpdateTaskWithRequestedFor, UserTask>().ReverseMap();
+			CreateMap<CreateTaskResponse, UserTask>().ReverseMap();
 
 		}
 

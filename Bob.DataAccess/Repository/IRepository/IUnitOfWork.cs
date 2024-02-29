@@ -20,6 +20,7 @@ namespace Bob.DataAccess.Repository.IRepository
 		ICommentRepository Comment { get; }
 		ITaskRepository UserTask { get; }
 		IActivityLogRepository ActivityLog { get; }
+		ITaskJobRepository TaskJob { get; }
 		void BeginTransaction();
 		void CommitTransaction();
 		void RollbackTransaction();

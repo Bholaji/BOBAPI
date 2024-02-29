@@ -57,7 +57,7 @@ namespace Bob.Core.Services
 		{
 			User user = _mapper.Map<User>(userCompositeDTO.User);
 
-			var organization = _unitOfWork.OrganizationRepository.GetAsync(u => u.Id == userCompositeDTO.User.OrganizationId);
+			var organization = await _unitOfWork.OrganizationRepository.GetAsync(u => u.Id == userCompositeDTO.User.OrganizationId);
 
 			if (organization is null)
 			{
