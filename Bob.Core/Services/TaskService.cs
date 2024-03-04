@@ -8,9 +8,9 @@ using Bob.Model;
 using Bob.Model.DTO.PaginationDTO;
 using Bob.Model.DTO.TaskDTO;
 using Bob.Model.Entities;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using TaskStatus = Bob.Model.Enums.TaskStatus;
 
 namespace Bob.Core.Services
@@ -98,7 +98,6 @@ namespace Bob.Core.Services
 
 		public async Task<APIResponse<List<UpdateTaskDTO>>> UpdateTask(UpdateTaskDTO DTO)
 		{
-
 			TaskJob currentTask = await _unitOfWork.TaskJob
 				.GetAsync(u => u.OrganizationId == DTO.OrganizationId && u.Id == DTO.TaskJobId);
 
@@ -202,10 +201,27 @@ namespace Bob.Core.Services
 				userTask = await _unitOfWork.UserTask
 					.GetAllAsync(u => u.TaskJobId == DTO.TaskJobId);
 
-				foreach (var taskUser in userTask)
+
+				var requestedFor = DTO.RequestedFor;
+
+				//create for these guys only
+				var createFor = DTO.RequestedFor.Except(userTask.Select(x => x.RequestedForId));
+
+				var deleteFor = userTask.Select(x => x.RequestedForId).Except(requestedFor);
+
+				
+				if (deleteFor.Any())
 				{
-					await _unitOfWork.UserTask.RemoveAsync(taskUser);
+					var idsString = string.Join(",", deleteFor.Select(x => $"'{x}'"));
+
+
+					var sql = $"DELETE FROM Tasks WHERE RequestedForId IN ({idsString})";
+
+					_db.Database.ExecuteSqlRaw(sql);
 				}
+
+			   users = await _unitOfWork.User.GetAllAsync(u => createFor.Contains(u.Id));
+
 
 				foreach (var user in users)
 				{
@@ -357,3 +373,17 @@ namespace Bob.Core.Services
 	}
 
 }
+
+
+//if (entityIds.Any())
+//{
+//	var parameterNames = entityIds.Select((_, index) => $"@p{index}").ToArray();
+//	var parameters = entityIds.Select((id, index) => new SqlParameter(parameterNames[index], id)).ToArray();
+
+//	var tableName = _context.Model.FindEntityType(typeof(TEntity)).GetTableName();
+//	var idColumnName = _context.Model.FindEntityType(typeof(TEntity)).FindPrimaryKey().Properties.First().Name;
+
+//	var sql = $"DELETE FROM {tableName} WHERE {idColumnName} IN ({string.Join(",", parameterNames)})";
+
+//	_context.Database.ExecuteSqlRaw(sql, parameters);
+//}
