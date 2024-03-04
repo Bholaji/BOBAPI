@@ -16,7 +16,7 @@ namespace Bob.Model.Entities
 		public string? Superpowers { get; set; }
 		[MaxLength(50)]
 		public string? FoodPrefrence { get; set; }
-
+		public Guid? UserId { get; set; }
 		[ForeignKey("UserId")]
 		[ValidateNever]
 		public User User { get; set; }

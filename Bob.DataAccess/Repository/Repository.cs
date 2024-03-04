@@ -1,8 +1,10 @@
 ﻿using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
+using Bob.Model.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
-
+using Task = System.Threading.Tasks.Task;
 namespace Bob.DataAccess.Repository
 {
 	public class Repository<T> : IRepository<T> where T : class
@@ -10,26 +12,51 @@ namespace Bob.DataAccess.Repository
 		private readonly ApplicationDbContext _db;
 		internal DbSet<T> dbSet;
 
-        public Repository(ApplicationDbContext db)
-        {
+		public Repository(ApplicationDbContext db)
+		{
 			_db = db;
 			this.dbSet = _db.Set<T>();
-        }
-
-        public async Task CreateAsync(T entity)
-		{
-			await dbSet.AddAsync(entity);
-			await SaveAsync();
 		}
 
-		public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+		public async Task CreateAsync(T entity)
+		{
+			await dbSet.AddAsync(entity);
+		}
+
+		public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null,
+			int pageNumber = 1, int pageSize = 0)
 		{
 			IQueryable<T> query = dbSet;
 
-			if(filter != null)
+			if (filter != null)
 			{
 				query = query.Where(filter);
 			}
+			/*if (pageSize > 100)
+			{
+				pageSize = 100;
+
+				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+			}
+			else if (pageSize < 0)
+			{
+				pageSize = 10;
+				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+			}
+			else if (pageNumber < 1)
+			{
+				pageNumber = 1;
+				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+			}*/
+			if (pageSize > 0)
+			{
+				if (pageSize > 100)
+				{
+					pageSize = 100;
+				}
+				query = query.Skip(pageSize * (pageNumber - 1)).Take(pageSize);
+			}
+
 			if (includeProperties != null)
 			{
 				foreach (var includeProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -38,6 +65,18 @@ namespace Bob.DataAccess.Repository
 				}
 			}
 			return await query.ToListAsync();
+		}
+
+		public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
+		{
+			IQueryable<T> query = dbSet;
+
+			if (filter != null)
+			{
+				query = query.Where(filter);
+			}
+
+			return await query.CountAsync();
 		}
 
 		public async Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true, string? includeProperties = null)
@@ -72,5 +111,6 @@ namespace Bob.DataAccess.Repository
 		{
 			await _db.SaveChangesAsync();
 		}
+
 	}
 }

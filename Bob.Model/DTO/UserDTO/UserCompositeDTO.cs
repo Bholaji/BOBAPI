@@ -1,10 +1,9 @@
-﻿using Bob.Model.DTO.UserDTO;
-
-namespace Bob.Model.DTO
+﻿namespace Bob.Model.DTO.UserDTO
 {
     public class UserCompositeDTO
     {
-        public UserResponseDTO User { get; set; }
+
+        public UserRequestDTO User { get; set; }
         public UserContactDTO UserContact { get; set; }
         public UserAddressDTO UserAddress { get; set; }
         public UserSocialDTO UserSocial { get; set; }

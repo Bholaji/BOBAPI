@@ -11,6 +11,8 @@ namespace Bob.Model.DTO.UserDTO
 		[MaxLength(50)]
 		public string Surname { get; set; }
 		[MaxLength(100)]
+		public string? FullName { get => $"{FirstName} {Surname}"; }
+		[MaxLength(100)]
 		public string? DispalyName { get; set; }
 		public string? MiddleName { get; set; }
 		[Required]
@@ -30,9 +32,9 @@ namespace Bob.Model.DTO.UserDTO
 		[MaxLength(50)]
 		public string Language1 { get; set; }
 		[MaxLength(50)]
-		public string? Language2 { get; set; }
-		[MaxLength(50)]
-		public DateTime CreationDate { get; set; }
-		public DateTime ModificaionDate { get; set; }
+		public string Language2 { get; set; }
+		public Guid RoleId { get; set; }
+		public Guid OrganizationId { get; set; }
+
 	}
 }
