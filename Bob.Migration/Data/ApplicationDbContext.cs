@@ -29,7 +29,12 @@ namespace Bob.Migrations.Data
 		public DbSet<UserTask> Tasks { get; set; }
 		public DbSet<ActivityLog> ActivityLogs { get; set; }
 		public DbSet<TaskJob> TaskJobs { get; set; }
-
+		public DbSet<Manager> Managers { get; set; }
+		public DbSet<UserTimeOff> UserTimeOffs { get; set; }
+		public DbSet<LeaveBalanceActivity> LeaveBalanceActivities { get; set; }
+		public DbSet<LeaveDaysAccural> LeaveDaysAccurals { get; set; }
+		public DbSet<LeaveRequest> LeaveRequests { get; set; }
+		public DbSet<CarryOverActivity> CarryOverActivities { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
