@@ -4,6 +4,7 @@ using Bob.Migrations.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bob.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240311101454_updateLeaveRequestTable2")]
+    partial class updateLeaveRequestTable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,21 +57,18 @@ namespace Bob.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ActivityType")
-                        .HasColumnType("int");
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateTime>("EffectiveDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("UpdatedOn")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("UpdatedOn")
+                        .HasColumnType("date");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -174,9 +174,6 @@ namespace Bob.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ActivityType")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -191,18 +188,14 @@ namespace Bob.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("AccuralDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("AccuralDate")
+                        .HasColumnType("date");
 
-                    b.Property<string>("AccuralPeriod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateOnly>("AccuralPeriod")
+                        .HasColumnType("date");
 
-                    b.Property<int>("ActivityType")
-                        .HasColumnType("int");
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Note")
                         .IsRequired()
@@ -222,27 +215,21 @@ namespace Bob.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ApprovedBy")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("ApprovedById")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("DaysRequested")
-                        .HasColumnType("float");
+                    b.Property<int>("DaysRequested")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("Duration")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Duration2")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("LeavePolicy")
                         .HasColumnType("int");
@@ -253,8 +240,8 @@ namespace Bob.Migrations.Migrations
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -931,8 +918,8 @@ namespace Bob.Migrations.Migrations
                     b.Property<int>("Compassionate")
                         .HasColumnType("int");
 
-                    b.Property<double>("Holdidays")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Holdidays")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("MovingDay")
                         .HasColumnType("int");
