@@ -41,7 +41,7 @@ namespace BobAPI.Job
 
 				double calculatedHolidays = Math.Round(holidaysPerYear * fractionOfYearRemaining, 1, MidpointRounding.AwayFromZero);
 
-                var userId = user.Id;
+				var userId = user.Id;
 
 				var newUserTimeOff = new UserTimeOff()
                 {
@@ -262,7 +262,7 @@ namespace BobAPI.Job
                 var userId = user.Id;
 
                 var newUserTimeOff = new UserTimeOff()
-                {
+			{
                     UserId = userId,
                     Holdidays = calculatedHolidays,
                     Sickness_paid = 7,
@@ -288,14 +288,14 @@ namespace BobAPI.Job
             foreach (var leaveRequests in pendingLeaveRequests)
             {
                 if ((DateTime.Now - leaveRequests.CreationDate).Days > _numberOfDaysForAutomaticLeaveApproval)
-                {
+				{
                     leaveRequests.LeaveRequestStatus = LeaveRequestStatus.Approved;
-                }
+				}
 				activityLogs.Add(new ActivityLog
 				{
 
 				});
-            }
+			}
 			await db.SaveChangesAsync();
         }
     }
