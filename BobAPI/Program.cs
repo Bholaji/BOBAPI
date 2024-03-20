@@ -1,6 +1,7 @@
 using Bob.Core;
 using Bob.Core.Services;
 using Bob.Core.Services.IServices;
+using Bob.Core.Strategy;
 using Bob.DataAccess.Repository;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
