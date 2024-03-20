@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.Entities
 {
-	public class UserTimeOff
+	public class UserTimeOff : BaseLeaveEntity
 	{
-		public Guid Id { get; set; }
 		public double Holdidays { get; set; }
 		public int Sickness_paid { get; set; }
 		public string WorkFromHome { get; set; }

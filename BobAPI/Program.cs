@@ -30,6 +30,7 @@ builder.Services.AddAutoMapper(typeof(ProfileConfig));
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<BackgroundWorkerService>();
+builder.Services.AddHostedService<EndOfYearBackgroundWorkerService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 

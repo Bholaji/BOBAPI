@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.Entities
 {
-	public class LeaveRequest
+	public class LeaveRequest : BaseLeaveEntity
 	{
-		public Guid Id { get; set; }
 		public LeavePolicy LeavePolicy { get; set; }
 		public DateTime StartDate { get; set; }
 		public DateTime EndDate { get; set; }

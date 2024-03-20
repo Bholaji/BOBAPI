@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.Entities
 {
-	public class LeaveDaysAccural
+	public class LeaveDaysAccural : BaseLeaveEntity
 	{
-		public Guid Id { get;set; }	
 		public Guid UserId { get; set; }
 		public DateTime AccuralDate { get; set; }
 		public string AccuralPeriod { get; set; }

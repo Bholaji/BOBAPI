@@ -56,6 +56,11 @@ namespace Bob.Migrations.Data
 				.HasIndex(u => new { u.OrganizationId, u.EmployeeID })
 				.IsUnique();
 
+			//Composite index of USER id and accural date
+			modelBuilder.Entity<LeaveDaysAccural>()
+				.HasIndex(u => new { u.UserId, u.AccuralDate, u.ActivityType })
+				.IsUnique();
+
 
 			modelBuilder.Entity<User>()
 				.HasIndex(x => x.Email).IsUnique();

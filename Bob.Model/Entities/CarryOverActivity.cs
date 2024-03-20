@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace Bob.Model.Entities
 {
-	public class CarryOverActivity
+	public class CarryOverActivity : BaseLeaveEntity
 	{
-		public Guid Id { get; set; }
 		public DateTime EffectiveDate { get; set; }
 		public double Amount { get; set; }
 		[MaxLength(500)]
