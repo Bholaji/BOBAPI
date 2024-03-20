@@ -8,6 +8,8 @@ namespace BobAPI.Job
 {
 	public interface ILeaveService
 	{
-		Task LeaveServices();
+        Task CreateUserTimeOff();
+        Task EndOfYearLeaveAccrual();
+        Task SystemApproveLeave();
 	}
 }

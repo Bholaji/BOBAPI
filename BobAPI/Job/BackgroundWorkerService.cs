@@ -31,7 +31,9 @@ namespace BobAPI.Job
 		{
 			_logger.LogInformation("Leave  creation about to start");
 
-			await _LeaveService.LeaveServices();
+			await _LeaveService.EndOfYearLeaveAccrual();
+			await _LeaveService.CreateUserTimeOff();
+			await _LeaveService.SystemApproveLeave();
 
 			var count = Interlocked.Increment(ref executionCount);
 			var nextExecutionTime = 10 * 1000;

@@ -12,19 +12,20 @@ namespace BobAPI.Job
 	{
 		private readonly IServiceScopeFactory scopeFactory;
         public ApplicationDbContext db;
+		private readonly int _numberOfDaysForAutomaticLeaveApproval = 7;
         public LeaveService(IServiceScopeFactory scopeFactory)
         {
 			this.scopeFactory = scopeFactory;
 		}
 
-        public async Task LeaveServices()
+        public async Task EndOfYearLeaveAccrual()
         {
             using var scope = scopeFactory.CreateScope();
 			db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
 			var usersWithoutLeave = db.Users.Where(u => !db.UserTimeOffs.Any(x => x.UserId == u.Id));
 
-            var LeaveStatusPending = db.LeaveRequests.Where(u=> ((int)u.LeaveRequestStatus) == 1);
+          //  var LeaveStatusPending = db.LeaveRequests.Where(u=> u.LeaveRequestStatus == LeaveRequestStatus.pending);
 
             foreach (var user in usersWithoutLeave)
             {
@@ -36,8 +37,9 @@ namespace BobAPI.Job
 
 				int holidaysPerYear = 20;
 
-				double fractionOfYearRemaining = (double)(daysInYear - userJoinDate.DayOfYear) / daysInYear;
-				double calculatedHolidays = (double)(holidaysPerYear * fractionOfYearRemaining);
+				double fractionOfYearRemaining = (daysInYear - userJoinDate.DayOfYear )/ daysInYear;
+
+				double calculatedHolidays = Math.Round(holidaysPerYear * fractionOfYearRemaining, 1, MidpointRounding.AwayFromZero);
 
 				var userId = user.Id;
 
@@ -233,19 +235,66 @@ namespace BobAPI.Job
                 await db.UserTimeOffs.AddAsync(newUserTimeOff);
             }
 
+			await db.SaveChangesAsync();
+        }
 
-			foreach (var leaveStatus in LeaveStatusPending)
+		public async Task CreateUserTimeOff()
+		{
+            using var scope = scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var usersWithoutLeave = db.Users.Where(u => !db.UserTimeOffs.Any(x => x.UserId == u.Id));
+
+            foreach (var user in usersWithoutLeave)
+            {
+                DateTime userJoinDate = user.CreationDate;
+                DateTime beginningOfYear = new(DateTime.Now.Year, 1, 1);
+                DateTime endOfYear = new(userJoinDate.Year, 12, 31);
+
+                int daysInYear = DateTime.IsLeapYear(userJoinDate.Year) ? 366 : 365;
+
+                int holidaysPerYear = 20;
+
+                double fractionOfYearRemaining = (daysInYear - userJoinDate.DayOfYear) / daysInYear;
+
+                double calculatedHolidays = Math.Round(holidaysPerYear * fractionOfYearRemaining, 1, MidpointRounding.AwayFromZero);
+
+                var userId = user.Id;
+
+                var newUserTimeOff = new UserTimeOff()
 			{
-				TimeSpan timeSpan = DateTime.UtcNow - leaveStatus.CreationDate;
-				TimeSpan deleteThreshold = TimeSpan.FromDays(7);
+                    UserId = userId,
+                    Holdidays = calculatedHolidays,
+                    Sickness_paid = 7,
+                    WorkFromHome = "infinity",
+                    Sickness_unpaid = "infinity",
+                    Birthday = 1,
+                    MovingDay = 2,
+                    Compassionate = 2
+                };
 
-				if (timeSpan.TotalDays > deleteThreshold.TotalDays)
+				await db.UserTimeOffs.AddAsync(newUserTimeOff);
+				await db.SaveChangesAsync();
+            }
+
+        }
+
+		public async Task SystemApproveLeave()
+		{
+            using var scope = scopeFactory.CreateScope();
+            db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+			var pendingLeaveRequests =  db.LeaveRequests.Where(x => x.LeaveRequestStatus == LeaveRequestStatus.pending);
+			var activityLogs = new List<ActivityLog>();
+            foreach (var leaveRequests in pendingLeaveRequests)
+            {
+                if ((DateTime.Now - leaveRequests.CreationDate).Days > _numberOfDaysForAutomaticLeaveApproval)
 				{
-					leaveStatus.LeaveRequestStatus = LeaveRequestStatus.Approved;
-					leaveStatus.ApprovedBy = "System";
+                    leaveRequests.LeaveRequestStatus = LeaveRequestStatus.Approved;
 				}
+				activityLogs.Add(new ActivityLog
+				{
 
-				db.LeaveRequests.Update(leaveStatus);
+				});
 			}
 			await db.SaveChangesAsync();
         }
