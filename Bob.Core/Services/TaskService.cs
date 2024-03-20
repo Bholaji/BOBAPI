@@ -64,6 +64,10 @@ namespace Bob.Core.Services
 				OrganizationId = DTO.OrganizationId
 			};
 
+			var taskJobs = new List<TaskJob>();
+			var userTasks = new List<UserTask>();
+			var activityLogs = new List<ActivityLog>();
+
 			foreach (var user in users)
 			{
 				tasks = _mapper.Map<UserTask>(DTO);
@@ -80,12 +84,13 @@ namespace Bob.Core.Services
 					UserId = user.Id,
 					Activity = $"Task created by {currentUser.DispalyName} at {DateTime.Now}"
 				};
-
-				await _unitOfWork.TaskJob.CreateAsync(newTask);
-				await _unitOfWork.UserTask.CreateAsync(tasks);
-				await _unitOfWork.ActivityLog.CreateAsync(activityLog);
-
+				taskJobs.Add(newTask);
+				userTasks.Add(tasks);
+				activityLogs.Add(activityLog);
 			}
+		    await _db.TaskJobs.AddRangeAsync(taskJobs);
+			await _db.Tasks.AddRangeAsync(userTasks);
+			await _db.ActivityLogs.AddRangeAsync(activityLogs);
 			await _unitOfWork.SaveAsync();
 
 			return new APIResponse<List<Guid>>
