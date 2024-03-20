@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Bob.Core.Exceptions;
 using Bob.Core.Services.IServices;
+using Bob.Core.Strategy;
 using Bob.DataAccess.Repository.IRepository;
 using Bob.Migrations.Data;
 using Bob.Model;
@@ -64,7 +65,7 @@ namespace Bob.Core.Services
 		public async Task<APIResponse<string>> RequestLeave(LeaveRequestDTO DTO)
 		{
 			var user = await _unitOfWork.User.GetAsync(u => u.Id == DTO.RequesterId);
-			 
+
 			if (user is null)
 			{
 				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
@@ -74,78 +75,27 @@ namespace Bob.Core.Services
 
 			var numberOfDaysRequested = Math.Ceiling((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
 
-			// If the start date and end date are the same, use only Duration1
-			if (leaveRequest.StartDate.Date == leaveRequest.EndDate.Date)
-			{
-				leaveRequest.Duration2 = null;
-				// Use Duration1
-				if (DTO.Duration1 == LeaveRequestDuration.Half_Day)
-				{
-					// Handle half-day
-					numberOfDaysRequested = 0.5;
-					leaveRequest.StartDate = leaveRequest.StartDate.Date;
-					leaveRequest.EndDate = leaveRequest.StartDate.Date.AddHours(4.5);
-					leaveRequest.Duration = LeaveRequestDuration.Half_Day;
-				}
-				else if (DTO.Duration1 == LeaveRequestDuration.All_Day)
-				{
-					// Handle full-day
-					numberOfDaysRequested = 1;
-					leaveRequest.StartDate = leaveRequest.StartDate.Date;
-					leaveRequest.EndDate = leaveRequest.EndDate.Date;
-					leaveRequest.Duration = LeaveRequestDuration.All_Day;
-				}
-			}
-			// If the start date and end date are different, use Duration1 for start date and Duration2 for end date
-			else
-			{
-				// Use Duration1 for start date
-				if (DTO.Duration1 == LeaveRequestDuration.Half_Day)
-				{
-					leaveRequest.Duration = LeaveRequestDuration.Half_Day;
-					// Handle half-day start date
-					if (DTO.Duration2 == LeaveRequestDuration.All_Day)
-					{
-						// Handle full-day end date
-						numberOfDaysRequested = numberOfDaysRequested - 0.5;
-						leaveRequest.StartDate = leaveRequest.StartDate.Date.AddHours(12);
-						leaveRequest.EndDate = leaveRequest.EndDate.Date;
-						leaveRequest.Duration2 = LeaveRequestDuration.All_Day;
-					}
-					else if (DTO.Duration2 == LeaveRequestDuration.Half_Day)
-					{
-						// Handle half-day end date
-						numberOfDaysRequested = numberOfDaysRequested - 1;
-						leaveRequest.StartDate = leaveRequest.StartDate.Date.AddHours(12);
-						leaveRequest.EndDate = leaveRequest.EndDate.Date.AddHours(12);
-						leaveRequest.Duration2 = LeaveRequestDuration.Half_Day;
-					}
-				}
+			ILeaveRequestStrategy strategy;
+			
 
-				else if (DTO.Duration1 == LeaveRequestDuration.All_Day )
-				{
-					leaveRequest.Duration = LeaveRequestDuration.All_Day;
-					// Handle full-day start date
-					if (DTO.Duration2 == LeaveRequestDuration.All_Day)
-					{
-						// Handle full-day end date
-						leaveRequest.StartDate = leaveRequest.StartDate.Date;
-						leaveRequest.EndDate = leaveRequest.EndDate.Date;
-						leaveRequest.Duration2 = LeaveRequestDuration.All_Day;
-					}
-					else if (DTO.Duration2 == LeaveRequestDuration.Half_Day)
-					{
-						// Handle half-day end date
-						numberOfDaysRequested = numberOfDaysRequested - 0.5;
-						leaveRequest.StartDate = leaveRequest.StartDate.Date;
-						leaveRequest.EndDate = leaveRequest.EndDate.Date.AddHours(12);
-						leaveRequest.Duration2 = LeaveRequestDuration.Half_Day;
-					}
-				}
+			if (DTO.StartDate.Date == DTO.EndDate.Date)
+			{
+				strategy = new SameDayStrategy();
 			}
+			else if (DTO.Duration1 == LeaveRequestDuration.All_Day)
+			{
+				strategy = new AllDayStrategy();
+			}
+			else // Duration1 == Half_Day
+			{
+				strategy = new HalfDayStrategy();
+			}
+
+			await strategy.HandleRequest(DTO, leaveRequest, numberOfDaysRequested);
+
+			//leaveRequest.DaysRequested = numberOfDaysRequested;
 
 			leaveRequest.LeaveRequestStatus = LeaveRequestStatus.pending;
-			leaveRequest.DaysRequested = numberOfDaysRequested;
 
 			await _db.LeaveRequests.AddAsync(leaveRequest);
 			await _db.SaveChangesAsync();
@@ -157,6 +107,7 @@ namespace Bob.Core.Services
 				Result = "Leave Request submitted successfully"
 			};
 		}
+
 		public async Task<APIResponse<string>> EditRequestLeave(EditRequestLeaveDTO DTO)
 		{
 			var leaveRequest = _db.LeaveRequests
@@ -167,82 +118,23 @@ namespace Bob.Core.Services
 				throw new NotFoundException($"{nameof(LeaveRequest)} {ResponseMessage.NotFound}");
 			}
 
-			leaveRequest.Duration = DTO.Duration1;
+			IEditLeaveRequestStrategy strategy;
 
-			if (leaveRequest.Duration2 is not null)
+			if (DTO.StartDate == DTO.EndDate)
 			{
-				leaveRequest.Duration2 = DTO.Duration2;
+				strategy = new EditSameDayStrategy();
+			}
+			else if (DTO.Duration1 == LeaveRequestDuration.All_Day)
+			{
+				strategy = new EditAllDayStrategy();
+			}
+			else // Duration1 == Half_Day
+			{
+				strategy = new EditHalfDayStrategy();
 			}
 
-			double numberOfDaysRequested = (leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1;
+			await strategy.HandleEdit(DTO, leaveRequest);
 
-			// If the start date and end date are the same, use only Duration1
-			if (leaveRequest.StartDate.Date == leaveRequest.EndDate.Date)
-			{
-				//leaveRequest.Duration2 = null;
-				// Use Duration1
-				if (leaveRequest.Duration == LeaveRequestDuration.Half_Day)
-				{
-					// Handle half-day
-					numberOfDaysRequested = 0.5;
-					leaveRequest.StartDate = leaveRequest.StartDate.Date;
-					leaveRequest.EndDate = leaveRequest.StartDate.Date.AddHours(12);
-					leaveRequest.Duration = LeaveRequestDuration.Half_Day;
-				}
-				else if (leaveRequest.Duration == LeaveRequestDuration.All_Day)
-				{
-					// Handle full-day
-					numberOfDaysRequested = 1;
-					leaveRequest.StartDate = leaveRequest.StartDate.Date;
-					leaveRequest.EndDate = leaveRequest.EndDate.Date;
-					leaveRequest.Duration = LeaveRequestDuration.All_Day;
-				}
-			}
-			// If the start date and end date are different, use Duration1 for start date and Duration2 for end date
-			else
-			{
-				// Use Duration1 for start date
-				if (DTO.Duration1 == LeaveRequestDuration.Half_Day)
-				{
-					// Handle half-day start date
-					if (DTO.Duration2 == LeaveRequestDuration.All_Day)
-					{
-						// Handle full-day end date
-						leaveRequest.StartDate = leaveRequest.StartDate.Date.AddHours(12);
-						leaveRequest.EndDate = leaveRequest.EndDate.Date;
-						numberOfDaysRequested = ((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
-					}
-					else if (DTO.Duration2 == LeaveRequestDuration.Half_Day)
-					{
-						// Handle half-day end date
-						
-						leaveRequest.StartDate = leaveRequest.StartDate.Date.AddHours(12);
-						leaveRequest.EndDate = leaveRequest.EndDate.Date.AddHours(12);
-						numberOfDaysRequested = ((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays);
-					}
-				}
-
-				else if (DTO.Duration1 == LeaveRequestDuration.All_Day)
-				{
-					// Handle full-day start date
-					if (DTO.Duration2 == LeaveRequestDuration.All_Day)
-					{
-						// Handle full-day end date
-						
-						leaveRequest.StartDate = leaveRequest.StartDate.Date;
-						leaveRequest.EndDate = leaveRequest.EndDate.Date;
-						numberOfDaysRequested = ((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
-					}
-					else if (DTO.Duration2 == LeaveRequestDuration.Half_Day)
-					{
-						// Handle half-day end date
-						leaveRequest.StartDate = leaveRequest.StartDate.Date;
-						leaveRequest.EndDate = leaveRequest.EndDate.Date.AddHours(12);
-						numberOfDaysRequested = ((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays);
-					}
-				}
-			}
-			leaveRequest.DaysRequested = numberOfDaysRequested;
 			_db.LeaveRequests.Update(leaveRequest);
 			await _db.SaveChangesAsync();
 
@@ -253,6 +145,7 @@ namespace Bob.Core.Services
 				Result = "Leave Request edited successfully"
 			};
 		}
+
 		public async Task<APIResponse<List<GetCarryOverActivityDTO>>> GetCarryOverActivityForAUser(Guid userId)
 		{
 			var user = await _unitOfWork.User.GetAsync(u => u.Id == userId);
