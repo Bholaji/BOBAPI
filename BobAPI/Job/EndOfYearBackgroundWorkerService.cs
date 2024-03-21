@@ -1,4 +1,5 @@
-﻿namespace BobAPI.Job
+﻿
+namespace BobAPI.Job
 {
 	public class EndOfYearBackgroundWorkerService: BackgroundService
 	{
@@ -12,31 +13,32 @@
 			_LeaveService = LeaveService;
 		}
 
-		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-		{
-			var now = DateTime.Now;
-			var endOfYear = new DateTime(now.Year, 12, 31, 23, 59, 59);
-
-			var delay = (int)(endOfYear - now).TotalMilliseconds;
-
-			_timer = new Timer(ExecuteEndOfYearAccural, null, delay, Timeout.Infinite);
-
-			await Task.CompletedTask;
-		}
-
-		private async void ExecuteEndOfYearAccural(object sender)
+		/*private async Task ExecuteEndOfYearAccrual()
 		{
 			_logger.LogInformation("End of year leave accrual starting...");
-
 			await _LeaveService.EndOfYearLeaveAccrual();
 
+			// Calculate the time until the end of the current year
 			var now = DateTime.Now;
-			var nextYear = now.AddYears(1);
-			var timeUntilNextYear = new DateTime(nextYear.Year, 1, 1, 0, 0, 0) - now;
+			var endOfYear = new DateTime(now.Year, 12, 31, 23, 59, 59);
+			var timeUntilEndOfYear = endOfYear - now;
 
-			_timer.Change((int)timeUntilNextYear.TotalMilliseconds, Timeout.Infinite);
-
-			_logger.LogInformation("Next End of Year Leave Accrual scheduled for {time}...", nextYear);
+			// Add a fixed interval to schedule the next execution (e.g., one day)
+			var interval = TimeSpan.FromDays(1); // Adjust the interval as needed
+			var nextExecutionTime = timeUntilEndOfYear + interval;
 		}
+
+		*/
+		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		{
+			// Set up timer to trigger at the end of the current year
+			var now = DateTime.Now;
+			var endOfYear = new DateTime(now.Year, 12, 31, 23, 59, 59);
+			var timeUntilEndOfYear = endOfYear - now;
+
+			// Trigger the execution at the end of the current year
+			//_timer = new Timer(async _ => await ExecuteEndOfYearAccrual(), null, timeUntilEndOfYear, Timeout.InfiniteTimeSpan);
+		}
+
 	}
 }

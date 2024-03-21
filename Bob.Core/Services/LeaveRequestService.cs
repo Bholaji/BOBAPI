@@ -8,6 +8,7 @@ using Bob.Model;
 using Bob.Model.DTO.LeaveDTO;
 using Bob.Model.Entities;
 using Bob.Model.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 
@@ -71,9 +72,24 @@ namespace Bob.Core.Services
 				throw new NotFoundException($"{nameof(User)} {ResponseMessage.NotFound}");
 			}
 
+			var leaveDaysAccural =  await _db.LeaveDaysAccurals
+				.Where(u => u.UserId == user.Id && u.ActivityType == DTO.LeavePolicy).FirstOrDefaultAsync();
+
+			double totalLeaveDays = leaveDaysAccural.Amount;
+
 			LeaveRequest leaveRequest = _mapper.Map<LeaveRequest>(DTO);
 
 			var numberOfDaysRequested = Math.Ceiling((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
+			S
+			if (numberOfDaysRequested > totalLeaveDays)
+			{
+				return new APIResponse<string>()
+				{
+					IsSuccess = false,
+					Message = "Insufficient leave balance. Please choose fewer days or check your leave balance.",
+					Result = null
+				};
+			}
 
 			ILeaveRequestStrategy strategy;
 			
