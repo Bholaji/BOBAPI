@@ -13,31 +13,35 @@ namespace BobAPI.Job
 			_LeaveService = LeaveService;
 		}
 
-		/*private async Task ExecuteEndOfYearAccrual()
+		protected override Task ExecuteAsync(CancellationToken stoppingToken)
 		{
-			_logger.LogInformation("End of year leave accrual starting...");
-			await _LeaveService.EndOfYearLeaveAccrual();
+			_logger.LogInformation($"Service started at {DateTime.Now}........");
 
-			// Calculate the time until the end of the current year
-			var now = DateTime.Now;
-			var endOfYear = new DateTime(now.Year, 12, 31, 23, 59, 59);
-			var timeUntilEndOfYear = endOfYear - now;
+			var date = DateTime.Now;
+			var nextYear = date.AddYears(1).Date;
+			var timeUntilNextYear = nextYear - date;
+			var x = timeUntilNextYear.Milliseconds;
 
-			// Add a fixed interval to schedule the next execution (e.g., one day)
-			var interval = TimeSpan.FromDays(1); // Adjust the interval as needed
-			var nextExecutionTime = timeUntilEndOfYear + interval;
+			_timer = new Timer(RunLeaveCreationTask, null, x, Timeout.Infinite);
+			return Task.CompletedTask;
+
 		}
 
-		*/
-		protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+		private async void RunLeaveCreationTask(object sender)
 		{
-			// Set up timer to trigger at the end of the current year
-			var now = DateTime.Now;
-			var endOfYear = new DateTime(now.Year, 12, 31, 23, 59, 59);
-			var timeUntilEndOfYear = endOfYear - now;
+			_logger.LogInformation("Beginning of the year worker about to start");
 
-			// Trigger the execution at the end of the current year
-			//_timer = new Timer(async _ => await ExecuteEndOfYearAccrual(), null, timeUntilEndOfYear, Timeout.InfiniteTimeSpan);
+			await _LeaveService.EndOfYearLeaveAccrual();
+
+			var count = Interlocked.Increment(ref executionCount);
+			var date = DateTime.Now;
+			var nextYear = date.AddYears(1).Date;
+			var timeUntilNextYear = nextYear - date;
+			var x = timeUntilNextYear.Milliseconds;
+
+			_timer.Change(x, Timeout.Infinite);
+
+			_logger.LogInformation("Next worker reminder ran at {time}...", DateTime.Now);
 		}
 
 	}

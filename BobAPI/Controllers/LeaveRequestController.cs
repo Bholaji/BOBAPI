@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BobAPI.Controllers
 {
 	[ApiController]
-	[Route("api/leaverequest")]
+	[Route("api/leave")]
 	public class LeaveRequestController : Controller
 	{
 		private readonly ILeaveRequestService _leaveRequestService;

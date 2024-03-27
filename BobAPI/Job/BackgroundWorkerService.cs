@@ -9,7 +9,7 @@ namespace BobAPI.Job
 		private int executionCount = 0;
 		private readonly ILeaveService _LeaveService;
 		public BackgroundWorkerService(ILogger<BackgroundWorkerService> logger, ILeaveService LeaveService)
-        {
+		{
 			_logger = logger;
 			_LeaveService = LeaveService;
 		}
@@ -19,7 +19,6 @@ namespace BobAPI.Job
 			_logger.LogInformation($"Service started at {DateTime.Now}........");
 
 			var nextExecutionTime = 10 * 1000;
-			var nextSchedulrfTime = DateTime.Now.AddMilliseconds(nextExecutionTime);
 
 			_timer = new Timer(RunLeaveCreationTask, null, nextExecutionTime, Timeout.Infinite);
 			return Task.CompletedTask;
@@ -30,12 +29,10 @@ namespace BobAPI.Job
 			_logger.LogInformation("Leave  creation about to start");
 
 			await _LeaveService.CreateUserTimeOff();	
-			await _LeaveService.EndOfYearLeaveAccrual();
 			await _LeaveService.SystemApproveLeave();
 
 			var count = Interlocked.Increment(ref executionCount);
 			var nextExecutionTime = 10 * 1000;
-			var nextScheduledTime = DateTime.Now.AddMilliseconds(nextExecutionTime);
 			_timer.Change(nextExecutionTime, Timeout.Infinite);
 
 			_logger.LogInformation("Next Leave Creation reminder ran at {time}...", DateTime.Now);

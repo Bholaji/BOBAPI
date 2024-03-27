@@ -10,7 +10,6 @@ using Bob.Model.Entities;
 using Bob.Model.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel.DataAnnotations;
 
 namespace Bob.Core.Services
 {
@@ -58,7 +57,7 @@ namespace Bob.Core.Services
 			{
 				IsSuccess = true,
 				Message = ResponseMessage.IsSuccess,
-				Result = "Status CHanged"
+				Result = "Status Changed"
 			};
 
 		}
@@ -75,12 +74,17 @@ namespace Bob.Core.Services
 			var leaveDaysAccural =  await _db.LeaveDaysAccurals
 				.Where(u => u.UserId == user.Id && u.ActivityType == DTO.LeavePolicy).FirstOrDefaultAsync();
 
+			if (leaveDaysAccural is null)
+			{
+				throw new NotFoundException($"{nameof(LeaveDaysAccural)} {ResponseMessage.NotFound}");
+			}
+
 			double totalLeaveDays = leaveDaysAccural.Amount;
 
 			LeaveRequest leaveRequest = _mapper.Map<LeaveRequest>(DTO);
 
 			var numberOfDaysRequested = Math.Ceiling((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
-			S
+			
 			if (numberOfDaysRequested > totalLeaveDays)
 			{
 				return new APIResponse<string>()
@@ -109,8 +113,6 @@ namespace Bob.Core.Services
 
 			await strategy.HandleRequest(DTO, leaveRequest, numberOfDaysRequested);
 
-			//leaveRequest.DaysRequested = numberOfDaysRequested;
-
 			leaveRequest.LeaveRequestStatus = LeaveRequestStatus.pending;
 
 			await _db.LeaveRequests.AddAsync(leaveRequest);
@@ -132,6 +134,28 @@ namespace Bob.Core.Services
 			if (leaveRequest is null)
 			{
 				throw new NotFoundException($"{nameof(LeaveRequest)} {ResponseMessage.NotFound}");
+			}
+
+			var leaveDaysAccural = await _db.LeaveDaysAccurals
+				.Where(u => u.UserId == leaveRequest.RequesterId && u.ActivityType == leaveRequest.LeavePolicy).FirstOrDefaultAsync();
+
+			if (leaveDaysAccural is null)
+			{
+				throw new NotFoundException($"{nameof(LeaveDaysAccural)} {ResponseMessage.NotFound}");
+			}
+
+			double totalLeaveDays = leaveDaysAccural.Amount;
+
+			var numberOfDaysRequested = Math.Ceiling((leaveRequest.EndDate - leaveRequest.StartDate).TotalDays + 1);
+
+			if (numberOfDaysRequested > totalLeaveDays)
+			{
+				return new APIResponse<string>()
+				{
+					IsSuccess = false,
+					Message = "Insufficient leave balance. Please choose fewer days or check your leave balance.",
+					Result = null
+				};
 			}
 
 			IEditLeaveRequestStrategy strategy;
