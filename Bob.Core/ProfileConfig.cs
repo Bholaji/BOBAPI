@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Bob.Model.DTO;
 using Bob.Model.DTO.CommentDTO;
+using Bob.Model.DTO.LeaveDTO;
 using Bob.Model.DTO.PostDTO;
 using Bob.Model.DTO.ShoutoutDTO;
 using Bob.Model.DTO.TaskDTO;
@@ -65,6 +66,10 @@ namespace Bob.Core
 			CreateMap<UpdateTaskWithRequestedFor, TaskJob>().ReverseMap();
 			CreateMap<UpdateTaskWithRequestedFor, UserTask>().ReverseMap();
 			CreateMap<CreateTaskResponse, UserTask>().ReverseMap();
+
+			CreateMap<LeaveRequestDTO, LeaveRequest>().ReverseMap();
+			CreateMap<GetCarryOverActivityDTO, CarryOverActivity>().ReverseMap();
+			CreateMap<GetLeaveRequestDTO, LeaveRequest>().ReverseMap();
 
 		}
 

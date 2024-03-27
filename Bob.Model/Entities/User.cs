@@ -30,6 +30,8 @@ namespace Bob.Model.Entities
 		public string Language1 { get; set; }
 		public string? Language2 { get; set; }
         public UserContact userContact { get; set; }
+		public Guid? ManagerId { get; set; }
+		public Guid? SecondLvlManagerId { get; set; }
 		[Required]
 		public Guid RoleId { get; set; }
 		[ForeignKey(nameof(RoleId))]
